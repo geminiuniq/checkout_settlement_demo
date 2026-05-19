@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Obita · Fiat Assets</title>
+<script>if(!sessionStorage.getItem("obitaUser"))location.replace("login.html");</script>
 <style>
   :root{
     --blue:#2f6bff;--sidebar-top:#1f5cff;--sidebar-bottom:#0c2f8f;
@@ -36,6 +37,8 @@
   .pill{display:flex;align-items:center;gap:7px;background:#e7eefc;color:var(--blue);padding:10px 16px;border-radius:30px;font-weight:600;font-size:15px;height:46px;}
   .icon-btn{width:46px;height:46px;border-radius:50%;background:#e7eefc;display:flex;align-items:center;justify-content:center;color:var(--blue);position:relative;font-size:18px;}
   .icon-btn .dot{position:absolute;top:11px;right:12px;width:8px;height:8px;border-radius:50%;background:#ff5b6a;}
+  .reset-btn{height:46px;padding:0 20px;border:1px solid var(--blue);background:#fff;color:var(--blue);font-size:14px;font-weight:700;border-radius:30px;cursor:pointer;}
+  .reset-btn:hover{background:#eef3ff;}
 
   .content{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start;}
 
@@ -111,8 +114,9 @@
       <div class="top-right">
         <div class="company"><span class="av"></span> NancyTest Company Ltd.</div>
         <div class="pill">🌐 EN</div>
+        <button class="reset-btn" onclick="resetDemo()">重置</button>
         <div class="icon-btn">🔔<span class="dot"></span></div>
-        <div class="icon-btn">👤</div>
+        <div class="icon-btn" title="退出登录" onclick="logout()" style="cursor:pointer">👤</div>
       </div>
     </div>
 
@@ -182,17 +186,18 @@
     </div>
   </main>
 <script>
-  (function(){
-    // 刷新本页时重置数据；从其他页面跳转进来则保留
-    const nav=performance.getEntriesByType("navigation")[0];
-    if(nav && nav.type==="reload"){
-      ["obitaSchedule","obitaUsdBalance","obitaLastSettleDay"].forEach(k=>localStorage.removeItem(k));
-    }
+  function logout(){ sessionStorage.removeItem("obitaUser"); location.replace("login.html"); }
+  function renderBal(){
     const bal=parseFloat(localStorage.getItem("obitaUsdBalance")||"0");
     document.getElementById("usdBig").textContent=bal.toFixed(2);
     document.getElementById("usdSub").textContent="≈$"+bal.toFixed(2);
     document.getElementById("availBal").textContent="$"+bal.toFixed(2);
-  })();
+  }
+  renderBal();
+  function resetDemo(){
+    ["obitaSchedule","obitaUsdBalance","obitaLastSettleDay"].forEach(k=>localStorage.removeItem(k));
+    renderBal();
+  }
 </script>
 </body>
 </html>

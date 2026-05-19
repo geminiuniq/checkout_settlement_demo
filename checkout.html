@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Obita · Checkout</title>
+<script>if(!sessionStorage.getItem("obitaUser"))location.replace("login.html");</script>
 <style>
   :root{
     --blue:#2f6bff;--blue-deep:#1f51d6;
@@ -39,6 +40,8 @@
   .pill{display:flex;align-items:center;gap:5px;background:#e7eefc;color:var(--blue);padding:8px 12px;border-radius:24px;font-weight:600;font-size:12px;height:36px;}
   .icon-btn{width:36px;height:36px;border-radius:50%;background:#e7eefc;display:flex;align-items:center;justify-content:center;color:var(--blue);position:relative;font-size:14px;}
   .icon-btn .dot{position:absolute;top:8px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--red);}
+  .reset-btn{height:36px;padding:0 16px;border:1px solid var(--blue);background:#fff;color:var(--blue);font-size:12px;font-weight:700;border-radius:24px;cursor:pointer;}
+  .reset-btn:hover{background:#eef3ff;}
 
   /* Stats banner */
   .banner{background:linear-gradient(120deg,#2f6bff,#3f78ff);border-radius:16px;padding:26px 40px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;position:relative;overflow:hidden;}
@@ -143,8 +146,9 @@
       <div class="top-right">
         <div class="company"><span class="av"></span> NancyTest Company Ltd.</div>
         <div class="pill">🌐 EN</div>
+        <button class="reset-btn" onclick="resetDemo()">重置</button>
         <div class="icon-btn">🔔<span class="dot"></span></div>
-        <div class="icon-btn">👤</div>
+        <div class="icon-btn" title="退出登录" onclick="logout()" style="cursor:pointer">👤</div>
       </div>
     </div>
 
@@ -245,8 +249,14 @@ let orders = [
   {c:"18 May 2026, 06:30",id:"2056326890945445761",usd:2.00,paid:"Underpaid USDT 1.20",under:true,pm:"TronLink Wallet",st:"Pending",pa:"-"},
 ];
 
-// 每次进入/刷新 checkout 重置结算设置与 Fiat Assets 数据
-["obitaSchedule","obitaUsdBalance","obitaLastSettleDay"].forEach(k=>localStorage.removeItem(k));
+function logout(){ sessionStorage.removeItem("obitaUser"); location.replace("login.html"); }
+
+function resetDemo(){
+  ["obitaSchedule","obitaUsdBalance","obitaLastSettleDay"].forEach(k=>localStorage.removeItem(k));
+  orders.forEach(o=>{ if(o.st==="Settling"||o.st==="Settled") o.st="Completed"; });
+  render();
+  notify("已重置","结算设置与 Fiat Assets 数据已恢复初始状态",true);
+}
 
 const pmIcon={"Wallet Scan":"▣","MetaMask":"🦊","TronLink Wallet":"▦","WalletConnect":"◈","-":""};
 const stClass={Completed:"st-completed",Pending:"st-pending",Settling:"st-settling",Settled:"st-settled"};
