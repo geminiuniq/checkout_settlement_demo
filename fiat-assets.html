@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obita · Fiat Assets</title>
+<style>
+  :root{
+    --blue:#2f6bff;--sidebar-top:#1f5cff;--sidebar-bottom:#0c2f8f;
+    --ink:#1f2937;--muted:#8a93a3;--line:#eef1f6;--bg:#f4f6fb;
+    --green:#1bb673;--amber:#e7a93b;--gold:#f0ad24;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{background:var(--bg);color:var(--ink);display:flex;min-height:100vh;}
+
+  .sidebar{width:280px;flex:0 0 280px;background:linear-gradient(180deg,var(--sidebar-top),var(--sidebar-bottom));color:#fff;padding:34px 0;position:sticky;top:0;height:100vh;overflow:auto;}
+  .logo{font-size:38px;font-weight:800;letter-spacing:.5px;padding:0 36px 38px;}
+  .nav-item{display:grid;grid-template-columns:26px 1fr 14px;align-items:center;column-gap:16px;padding:15px 28px;font-size:17px;color:#dce6ff;cursor:pointer;border-radius:12px;margin:3px 16px;text-decoration:none;}
+  .nav-item .ico{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .nav-item:hover{background:rgba(255,255,255,.08);}
+  .nav-item.open{background:rgba(255,255,255,.10);}
+  .nav-item .chev{justify-self:end;opacity:.55;font-size:13px;}
+  .sub{padding:2px 0 6px;}
+  .sub-item{display:flex;align-items:center;padding:13px 28px 13px 70px;font-size:16px;color:#cfe0ff;cursor:pointer;border-radius:10px;margin:3px 16px;text-decoration:none;}
+  .sub-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600;}
+  .sub-item:hover{background:rgba(255,255,255,.08);}
+
+  .main{flex:1;padding:34px 44px;overflow:auto;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px;}
+  .crumbs{font-size:22px;color:var(--muted);}
+  .crumbs b{color:var(--ink);}
+  .crumbs .sep{margin:0 12px;color:#c7cdd9;}
+  .top-right{display:flex;align-items:center;gap:14px;}
+  .company{display:flex;align-items:center;gap:10px;background:#fff;padding:9px 18px;border-radius:30px;font-weight:600;font-size:17px;box-shadow:0 2px 8px rgba(20,40,90,.05);}
+  .company .av{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#5b8cff,#2f6bff);}
+  .pill{display:flex;align-items:center;gap:7px;background:#e7eefc;color:var(--blue);padding:10px 16px;border-radius:30px;font-weight:600;font-size:15px;height:46px;}
+  .icon-btn{width:46px;height:46px;border-radius:50%;background:#e7eefc;display:flex;align-items:center;justify-content:center;color:var(--blue);position:relative;font-size:18px;}
+  .icon-btn .dot{position:absolute;top:11px;right:12px;width:8px;height:8px;border-radius:50%;background:#ff5b6a;}
+
+  .content{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start;}
+
+  .banner{background:linear-gradient(120deg,#2f6bff,#3f78ff);border-radius:22px;padding:38px 46px;color:#fff;position:relative;overflow:hidden;margin-bottom:30px;}
+  .banner::after{content:"";position:absolute;right:-60px;top:-40px;width:480px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 60%);}
+  .verify{position:absolute;top:26px;right:30px;background:rgba(255,255,255,.18);padding:8px 16px;border-radius:20px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px;}
+  .bal-row{display:flex;gap:120px;position:relative;z-index:1;}
+  .bal .label{font-size:19px;opacity:.9;margin-bottom:14px;}
+  .bal .val{font-size:38px;font-weight:800;}
+  .updated{margin-top:30px;font-size:15px;opacity:.85;position:relative;z-index:1;}
+
+  h2{font-size:24px;margin-bottom:20px;}
+  .asset{background:#fff;border-radius:16px;padding:24px 28px;display:flex;align-items:center;gap:22px;margin-bottom:18px;box-shadow:0 3px 14px rgba(20,40,90,.04);position:relative;}
+  .flag{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;flex:0 0 54px;}
+  .flag.usd{background:#3b5fc0;}.flag.hkd{background:#de2910;}.flag.eur{background:#1d3a8a;}
+  .ccy{font-size:22px;font-weight:700;width:64px;}
+  .amt-box{flex:1;}
+  .amt-box .big{font-size:30px;font-weight:700;}
+  .amt-box .sub{color:var(--muted);font-size:15px;margin-top:4px;}
+  .tag{position:absolute;top:18px;right:28px;background:#fdf3da;color:var(--gold);font-size:13px;font-weight:600;padding:4px 12px;border-radius:14px;}
+  .btn{padding:12px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;border:1.5px solid var(--blue);}
+  .btn.ghost{background:#fff;color:var(--blue);margin-right:12px;}
+  .btn.solid{background:var(--blue);color:#fff;}
+  .btn.ghost:hover{background:#f1f5ff;}.btn.solid:hover{background:#1f51d6;}
+
+  .hist-head{display:flex;align-items:center;justify-content:space-between;margin:34px 0 18px;}
+  .hist-head a{color:var(--blue);font-weight:600;text-decoration:none;font-size:16px;}
+  .card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 3px 14px rgba(20,40,90,.04);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{text-align:left;padding:22px 26px;font-size:15px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);}
+  td{padding:24px 26px;font-size:16px;color:var(--muted);text-align:center;}
+
+  .side-card{background:linear-gradient(180deg,#f3f7ff,#eaf1ff);border-radius:18px;padding:30px 28px;text-align:center;margin-bottom:24px;}
+  .side-card .art{width:120px;height:110px;margin:6px auto 20px;background:linear-gradient(135deg,#7aa2ff,#2f6bff);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:46px;}
+  .side-card h3{font-size:22px;margin-bottom:14px;}
+  .side-card p{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:24px;}
+  .add-btn{background:var(--gold);color:#fff;border:none;font-size:17px;font-weight:700;padding:15px 30px;border-radius:12px;cursor:pointer;width:100%;}
+  .add-btn:hover{background:#d99a1d;}
+
+  .rates{background:#fff;border-radius:18px;padding:26px 26px;box-shadow:0 3px 14px rgba(20,40,90,.04);}
+  .rates-head{display:flex;align-items:baseline;justify-content:space-between;}
+  .rates-head h3{font-size:20px;}
+  .rates-head span{color:var(--muted);font-size:14px;}
+  .rates-sub{color:var(--muted);font-size:14px;margin:6px 0 18px;}
+  .rate{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .rate:nth-child(3){border-bottom:1px solid var(--line);}
+  .rate .pair{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;}
+  .coin{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;}
+  .coin.usdc{background:#2775ca;}
+  .rate .num{font-weight:700;font-size:16px;}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">Obita</div>
+    <a class="nav-item" href="checkout.html"><span class="ico">◐</span><span>Dashboard</span><span class="chev"></span></a>
+    <div class="nav-item open"><span class="ico">▦</span><span>My Assets</span><span class="chev">⌄</span></div>
+    <div class="sub">
+      <a class="sub-item" href="fiat-assets.html">Stablecoin Assets</a>
+      <a class="sub-item active" href="fiat-assets.html">Fiat Assets</a>
+    </div>
+    <a class="nav-item" href="checkout.html"><span class="ico">$</span><span>Payout</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html"><span class="ico">¥</span><span>Collection</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html"><span class="ico">⬇</span><span>Approvals</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html"><span class="ico">▥</span><span>Report Center</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html"><span class="ico">▤</span><span>My Merchant</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html"><span class="ico">⚡</span><span>Security Center</span><span class="chev">›</span></a>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="crumbs">My Assets <span class="sep">›</span> <b>Fiat Assets</b></div>
+      <div class="top-right">
+        <div class="company"><span class="av"></span> NancyTest Company Ltd.</div>
+        <div class="pill">🌐 EN</div>
+        <div class="icon-btn">🔔<span class="dot"></span></div>
+        <div class="icon-btn">👤</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div>
+        <section class="banner">
+          <div class="verify">🛡 Business Verification Required</div>
+          <div class="bal-row">
+            <div class="bal"><div class="label">Available Balance</div><div class="val" id="availBal">$0.00</div></div>
+            <div class="bal"><div class="label">In Process</div><div class="val">$0.00</div></div>
+          </div>
+          <div class="updated">Estimated in USD and last updated at 19 May 2026, 21:54</div>
+        </section>
+
+        <h2>Fiat Assets</h2>
+
+        <div class="asset">
+          <div class="flag usd">🇺🇸</div><div class="ccy">USD</div>
+          <div class="amt-box"><div class="big" id="usdBig">0.00</div><div class="sub" id="usdSub">≈$0.00</div></div>
+          <span class="tag">Inactive</span>
+          <button class="btn ghost">Transfer Out</button>
+          <button class="btn solid">Top Up</button>
+        </div>
+        <div class="asset">
+          <div class="flag hkd">🇭🇰</div><div class="ccy">HKD</div>
+          <div class="amt-box"><div class="big">0.00</div><div class="sub">≈$0.00</div></div>
+          <span class="tag">Inactive</span>
+          <button class="btn ghost">Transfer Out</button>
+          <button class="btn solid">Top Up</button>
+        </div>
+        <div class="asset">
+          <div class="flag eur">🇪🇺</div><div class="ccy">EUR</div>
+          <div class="amt-box"><div class="big">0.00</div><div class="sub">≈$0.00</div></div>
+          <span class="tag">Inactive</span>
+          <button class="btn ghost">Transfer Out</button>
+          <button class="btn solid">Top Up</button>
+        </div>
+
+        <div class="hist-head"><h2 style="margin:0">History</h2><a href="#">More ›</a></div>
+        <div class="card">
+          <table>
+            <thead><tr>
+              <th>Reference ID</th><th>Type</th><th>Currency</th><th>Amount</th><th>Status</th><th>Action</th>
+            </tr></thead>
+            <tbody><tr><td colspan="6" style="padding:46px 0;">No records</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="side-card">
+          <div class="art">💳</div>
+          <h3>Add your bank account</h3>
+          <p>Ready to make a fiat top up or transfer out? Please add your bank account first.</p>
+          <button class="add-btn">Add Bank Account</button>
+        </div>
+
+        <div class="rates">
+          <div class="rates-head"><h3>Reference Rates</h3><span>Updated at 00:00</span></div>
+          <div class="rates-sub">Final rates apply at transaction</div>
+          <div class="rate"><div class="pair"><span class="coin">₮</span> USDT / USD</div><div class="num">0.9990</div></div>
+          <div class="rate"><div class="pair"><span class="coin">₮</span> USDT / HKD</div><div class="num">7.8320</div></div>
+          <div class="rate"><div class="pair"><span class="coin usdc">$</span> USDC / USD</div><div class="num">0.9990</div></div>
+          <div class="rate"><div class="pair"><span class="coin usdc">$</span> USDC / HKD</div><div class="num">7.8320</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+<script>
+  (function(){
+    // 刷新本页时重置数据；从其他页面跳转进来则保留
+    const nav=performance.getEntriesByType("navigation")[0];
+    if(nav && nav.type==="reload"){
+      ["obitaSchedule","obitaUsdBalance","obitaLastSettleDay"].forEach(k=>localStorage.removeItem(k));
+    }
+    const bal=parseFloat(localStorage.getItem("obitaUsdBalance")||"0");
+    document.getElementById("usdBig").textContent=bal.toFixed(2);
+    document.getElementById("usdSub").textContent="≈$"+bal.toFixed(2);
+    document.getElementById("availBal").textContent="$"+bal.toFixed(2);
+  })();
+</script>
+</body>
+</html>

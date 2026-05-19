@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obita · Checkout</title>
+<style>
+  :root{
+    --blue:#2f6bff;--blue-deep:#1f51d6;
+    --sidebar-top:#1f5cff;--sidebar-bottom:#0c2f8f;
+    --ink:#1f2937;--muted:#8a93a3;--line:#eef1f6;--bg:#f4f6fb;
+    --green:#1bb673;--amber:#e7a93b;--red:#ff5b6a;--purple:#7c5cff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{background:var(--bg);color:var(--ink);display:flex;min-height:100vh;font-size:13px;}
+
+  /* Sidebar */
+  .sidebar{width:230px;flex:0 0 230px;background:linear-gradient(180deg,var(--sidebar-top),var(--sidebar-bottom));color:#fff;padding:24px 0;position:sticky;top:0;height:100vh;overflow:auto;}
+  .logo{font-size:28px;font-weight:800;letter-spacing:.5px;padding:0 26px 26px;}
+  .nav-item{display:grid;grid-template-columns:20px 1fr 12px;align-items:center;column-gap:12px;padding:11px 20px;font-size:14px;color:#dce6ff;cursor:pointer;border-radius:9px;margin:2px 12px;text-decoration:none;}
+  .nav-item .ico{width:20px;height:20px;border-radius:6px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .nav-item:hover{background:rgba(255,255,255,.08);}
+  .nav-item.open{background:rgba(255,255,255,.10);}
+  .nav-item .chev{justify-self:end;opacity:.55;font-size:11px;}
+  .sub{padding:1px 0 4px;}
+  .sub-item{display:flex;align-items:center;padding:9px 20px 9px 52px;font-size:13px;color:#cfe0ff;cursor:pointer;border-radius:8px;margin:2px 12px;}
+  .sub-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600;}
+  .sub-item:hover{background:rgba(255,255,255,.08);}
+
+  /* Main */
+  .main{flex:1;padding:24px 32px;overflow:auto;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .crumbs{font-size:16px;color:var(--muted);}
+  .crumbs b{color:var(--ink);}
+  .crumbs .sep{margin:0 9px;color:#c7cdd9;}
+  .top-right{display:flex;align-items:center;gap:10px;}
+  .company{display:flex;align-items:center;gap:8px;background:#fff;padding:7px 14px;border-radius:24px;font-weight:600;font-size:13px;box-shadow:0 2px 8px rgba(20,40,90,.05);}
+  .company .av{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#5b8cff,#2f6bff);}
+  .pill{display:flex;align-items:center;gap:5px;background:#e7eefc;color:var(--blue);padding:8px 12px;border-radius:24px;font-weight:600;font-size:12px;height:36px;}
+  .icon-btn{width:36px;height:36px;border-radius:50%;background:#e7eefc;display:flex;align-items:center;justify-content:center;color:var(--blue);position:relative;font-size:14px;}
+  .icon-btn .dot{position:absolute;top:8px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--red);}
+
+  /* Stats banner */
+  .banner{background:linear-gradient(120deg,#2f6bff,#3f78ff);border-radius:16px;padding:26px 40px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;position:relative;overflow:hidden;}
+  .banner::after{content:"";position:absolute;right:-50px;top:-30px;width:420px;height:260px;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 60%);}
+  .stat{position:relative;z-index:1;}
+  .stat .label{font-size:13px;opacity:.9;margin-bottom:9px;}
+  .stat .val{font-size:28px;font-weight:800;}
+  .settle-row{display:flex;align-items:center;gap:12px;margin-top:14px;}
+  .sched-info{font-size:11.5px;line-height:1.4;background:rgba(255,255,255,.16);padding:7px 12px;border-radius:8px;max-width:230px;}
+  .sched-info b{font-weight:700;}
+  .settle-btn{background:#fff;color:var(--blue);border:none;font-size:13px;font-weight:700;padding:8px 20px;border-radius:8px;cursor:pointer;box-shadow:0 3px 9px rgba(0,0,0,.12);white-space:nowrap;}
+  .settle-btn:hover{background:#eef3ff;}
+  .settle-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* Filters */
+  .filters{display:flex;align-items:center;gap:30px;margin-bottom:18px;}
+  .filter{display:flex;align-items:center;gap:12px;}
+  .filter label{font-size:14px;font-weight:600;}
+  .select,.date{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px 14px;font-size:13px;color:var(--ink);min-width:180px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .date{min-width:320px;color:var(--muted);}
+  .muted{color:var(--muted);}
+
+  /* Table */
+  .card{background:#fff;border-radius:13px;overflow:hidden;box-shadow:0 4px 18px rgba(20,40,90,.04);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{text-align:left;padding:15px 20px;font-size:12.5px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);}
+  tbody td{padding:15px 20px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  .amt{font-weight:600;}
+  .paid{display:inline-block;margin-top:5px;background:#f1f4fa;color:var(--muted);font-size:11px;padding:3px 8px;border-radius:5px;font-weight:500;}
+  .paid.under{background:#fdeced;color:var(--red);}
+  .pm{display:flex;align-items:center;gap:9px;}
+  .pm .pmico{width:24px;height:24px;border-radius:6px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .oid{color:var(--blue);font-weight:600;cursor:pointer;text-decoration:none;}
+  .oid:hover{text-decoration:underline;}
+  .st-completed{color:var(--green);font-weight:600;}
+  .st-pending{color:var(--amber);font-weight:600;}
+  .st-settling{color:var(--purple);font-weight:600;}
+  .st-settled{color:#5b6472;font-weight:600;}
+  .details{color:var(--blue);font-weight:600;cursor:pointer;}
+  .details:hover{text-decoration:underline;}
+
+  /* Modal */
+  .overlay{position:fixed;inset:0;background:rgba(15,28,60,.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:14px;padding:26px 30px;width:420px;box-shadow:0 24px 60px rgba(0,0,0,.25);}
+  .modal h3{font-size:18px;margin-bottom:18px;}
+  .opt{display:block;padding:13px 15px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:11px;cursor:pointer;font-size:14px;}
+  .opt .head{display:flex;align-items:center;gap:10px;}
+  .opt.sel{border-color:var(--blue);background:#f3f7ff;}
+  .opt input{accent-color:var(--blue);width:15px;height:15px;}
+  .opt .hint{margin:8px 0 0 25px;font-size:12.5px;color:var(--muted);}
+  .opt .hint b{color:var(--blue);}
+  .sched{display:none;padding:4px 2px 6px;}
+  .sched.show{display:block;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:#52606d;}
+  .field select{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;background:#fff;}
+  .frow{display:flex;gap:11px;}
+  .frow .field{flex:1;}
+  .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+  .btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;}
+  .btn.ghost{background:#eef1f6;color:#52606d;}
+  .btn.primary{background:var(--blue);color:#fff;}
+
+  /* Toast notifications */
+  .toasts{position:fixed;top:20px;right:20px;display:flex;flex-direction:column;gap:12px;z-index:100;}
+  .toast{background:#fff;border-radius:12px;padding:14px 18px;min-width:280px;max-width:340px;
+    box-shadow:0 12px 32px rgba(15,28,60,.20);display:flex;gap:12px;align-items:flex-start;cursor:pointer;
+    border-left:4px solid var(--blue);transform:translateX(120%);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .35s;}
+  .toast.show{transform:translateX(0);opacity:1;}
+  .toast.done{border-left-color:var(--green);}
+  .toast .tico{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:14px;color:#fff;background:var(--blue);flex:0 0 26px;}
+  .toast.done .tico{background:var(--green);}
+  .toast .tbody .ttl{font-size:13.5px;font-weight:700;margin-bottom:3px;}
+  .toast .tbody .msg{font-size:12px;color:var(--muted);line-height:1.5;}
+  .toast .tx{margin-left:auto;color:#c0c6d2;font-size:14px;line-height:1;}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">Obita</div>
+    <a class="nav-item" href="checkout.html" style="color:inherit"><span class="ico">◐</span><span>Dashboard</span><span class="chev"></span></a>
+    <a class="nav-item" href="fiat-assets.html" style="color:inherit"><span class="ico">▦</span><span>My Assets</span><span class="chev">›</span></a>
+    <div class="nav-item" style="color:inherit"><span class="ico">$</span><span>Payout</span><span class="chev">›</span></div>
+    <div class="nav-item open"><span class="ico">¥</span><span>Collection</span><span class="chev">⌄</span></div>
+    <div class="sub">
+      <div class="sub-item">Invoice</div>
+      <div class="sub-item active">Checkout</div>
+      <div class="sub-item">Payer List</div>
+    </div>
+    <div class="nav-item"><span class="ico">⬇</span><span>Approvals</span><span class="chev">›</span></div>
+    <div class="nav-item"><span class="ico">▥</span><span>Report Center</span><span class="chev">›</span></div>
+    <div class="nav-item"><span class="ico">▤</span><span>My Merchant</span><span class="chev">›</span></div>
+    <div class="nav-item"><span class="ico">⚡</span><span>Security Center</span><span class="chev">›</span></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="crumbs">Collection <span class="sep">›</span> <b>Checkout</b></div>
+      <div class="top-right">
+        <div class="company"><span class="av"></span> NancyTest Company Ltd.</div>
+        <div class="pill">🌐 EN</div>
+        <div class="icon-btn">🔔<span class="dot"></span></div>
+        <div class="icon-btn">👤</div>
+      </div>
+    </div>
+
+    <section class="banner">
+      <div class="stat">
+        <div class="label">Paid · Unsettled Amount</div>
+        <div class="val" id="statAmt">USD 0.00</div>
+        <div class="settle-row">
+          <span class="sched-info" id="schedInfo" style="display:none"></span>
+          <button class="settle-btn" id="settleBtn" onclick="openSettle()">结算</button>
+        </div>
+      </div>
+      <div class="stat"><div class="label">Paid · Unsettled Orders</div><div class="val" id="statCnt">0</div></div>
+      <div class="stat"><div class="label">Awaiting Payment</div><div class="val" id="statPend">0</div></div>
+    </section>
+
+    <div class="filters">
+      <div class="filter"><label>Status</label><div class="select">All <span class="muted">⌄</span></div></div>
+      <div class="filter"><label>Issue Date</label><div class="date"><span>Start At &nbsp;-&nbsp; End At</span><span>📅</span></div></div>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Created At</th><th>Order</th><th>Total Amount</th>
+            <th>Payment Method</th><th>Status</th><th>Paid At</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <div class="toasts" id="toasts"></div>
+
+  <!-- Settle modal -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h3>结算</h3>
+      <label class="opt sel" id="optNow">
+        <div class="head"><input type="radio" name="settleMode" value="now" checked onchange="onMode()"> 立刻结算</div>
+        <div class="hint" id="nowHint"></div>
+      </label>
+      <label class="opt" id="optSched">
+        <div class="head"><input type="radio" name="settleMode" value="sched" onchange="onMode()"> 定期结算</div>
+      </label>
+
+      <div class="sched" id="sched">
+        <div class="field">
+          <label>结算周期</label>
+          <select id="freq" onchange="onFreq()">
+            <option value="daily">每日结算</option>
+            <option value="weekly">每周结算</option>
+            <option value="monthly">每月结算</option>
+          </select>
+        </div>
+        <div class="frow">
+          <div class="field" id="weekdayField" style="display:none">
+            <label>星期</label><select id="weekday"></select>
+          </div>
+          <div class="field" id="dayField" style="display:none">
+            <label>日期</label><select id="monthday"></select>
+          </div>
+          <div class="field">
+            <label>时间（整点）</label><select id="hour"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost" onclick="closeSettle()">取消</button>
+        <button class="btn primary" id="confirmBtn" onclick="confirmSettle()">确认</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// status: Completed (paid·unsettled) | Pending | Settling | Settled
+let orders = [
+  {c:"19 May 2026, 14:51",id:"2056326890945445998",usd:0.99,paid:"Paid USDT 1.23",under:false,pm:"TronLink Wallet",st:"Completed",pa:"19 May 2026, 14:53"},
+  {c:"19 May 2026, 14:49",id:"2056326890945445995",usd:0.99,paid:"Paid USDT 0.00",under:false,pm:"-",st:"Pending",pa:"-"},
+  {c:"19 May 2026, 14:29",id:"2056326890945445992",usd:0.99,paid:"Paid USDT 0.00",under:false,pm:"-",st:"Pending",pa:"-"},
+  {c:"19 May 2026, 14:13",id:"2056326890945445988",usd:1.98,paid:"Paid USDT 0.00",under:false,pm:"-",st:"Pending",pa:"-"},
+  {c:"18 May 2026, 22:50",id:"2056326890945445925",usd:0.59,paid:"Paid USDT 0.73",under:false,pm:"Wallet Scan",st:"Completed",pa:"18 May 2026, 22:52"},
+  {c:"18 May 2026, 22:34",id:"2056326890945445909",usd:0.50,paid:"Paid USDT 0.62",under:false,pm:"Wallet Scan",st:"Completed",pa:"18 May 2026, 22:36"},
+  {c:"18 May 2026, 21:10",id:"2056326890945445870",usd:1.20,paid:"Paid USDT 1.49",under:false,pm:"MetaMask",st:"Completed",pa:"18 May 2026, 21:12"},
+  {c:"18 May 2026, 20:45",id:"2056326890945445861",usd:2.00,paid:"Paid USDT 2.48",under:false,pm:"Wallet Scan",st:"Completed",pa:"18 May 2026, 20:47"},
+  {c:"18 May 2026, 19:30",id:"2056326890945445852",usd:0.80,paid:"Paid USDT 0.99",under:false,pm:"TronLink Wallet",st:"Completed",pa:"18 May 2026, 19:32"},
+  {c:"18 May 2026, 18:05",id:"2056326890945445843",usd:1.50,paid:"Paid USDT 1.86",under:false,pm:"WalletConnect",st:"Completed",pa:"18 May 2026, 18:07"},
+  {c:"18 May 2026, 16:50",id:"2056326890945445834",usd:3.00,paid:"Paid USDT 3.72",under:false,pm:"Wallet Scan",st:"Completed",pa:"18 May 2026, 16:52"},
+  {c:"18 May 2026, 15:20",id:"2056326890945445825",usd:0.99,paid:"Paid USDT 1.23",under:false,pm:"MetaMask",st:"Completed",pa:"18 May 2026, 15:22"},
+  {c:"18 May 2026, 13:40",id:"2056326890945445816",usd:2.50,paid:"Paid USDT 3.10",under:false,pm:"TronLink Wallet",st:"Completed",pa:"18 May 2026, 13:42"},
+  {c:"18 May 2026, 11:15",id:"2056326890945445807",usd:1.10,paid:"Paid USDT 1.36",under:false,pm:"Wallet Scan",st:"Completed",pa:"18 May 2026, 11:17"},
+  {c:"18 May 2026, 09:50",id:"2056326890945445798",usd:0.70,paid:"Paid USDT 0.87",under:false,pm:"WalletConnect",st:"Completed",pa:"18 May 2026, 09:52"},
+  {c:"18 May 2026, 08:25",id:"2056326890945445789",usd:1.80,paid:"Paid USDT 2.23",under:false,pm:"Wallet Scan",st:"Completed",pa:"18 May 2026, 08:27"},
+  {c:"18 May 2026, 07:10",id:"2056326890945445770",usd:1.00,paid:"Underpaid USDT 0.50",under:true,pm:"MetaMask",st:"Pending",pa:"-"},
+  {c:"18 May 2026, 06:30",id:"2056326890945445761",usd:2.00,paid:"Underpaid USDT 1.20",under:true,pm:"TronLink Wallet",st:"Pending",pa:"-"},
+];
+
+// 每次进入/刷新 checkout 重置结算设置与 Fiat Assets 数据
+["obitaSchedule","obitaUsdBalance","obitaLastSettleDay"].forEach(k=>localStorage.removeItem(k));
+
+const pmIcon={"Wallet Scan":"▣","MetaMask":"🦊","TronLink Wallet":"▦","WalletConnect":"◈","-":""};
+const stClass={Completed:"st-completed",Pending:"st-pending",Settling:"st-settling",Settled:"st-settled"};
+const stText ={Completed:"Completed",Pending:"Pending",Settling:"结算中",Settled:"已结算"};
+
+function shortId(id){ return id.slice(0,4)+"…"+id.slice(-4); } // 9 chars
+
+function unsettled(){ return orders.filter(o=>o.st==="Completed"); }
+function unsettledTotal(){ return unsettled().reduce((s,o)=>s+o.usd,0); }
+
+function todayKey(){ const d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function isFirstSettleToday(){ return localStorage.getItem("obitaLastSettleDay")!==todayKey(); }
+function settleFee(batch){
+  // 今日首次结算免费；否则 Wallet Scan 每笔 1 USD，其他每笔 0.2 USD
+  if(isFirstSettleToday()) return 0;
+  return batch.reduce((s,o)=>s+(o.pm==="Wallet Scan"?1:0.2),0);
+}
+
+const WD=["周日","周一","周二","周三","周四","周五","周六"];
+function pad(n){return String(n).padStart(2,"0");}
+function fmt(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:00`; }
+function nextSettleDate(cfg){
+  const now=new Date(); let d=new Date(now); d.setMinutes(0,0,0); d.setHours(cfg.hour);
+  if(cfg.freq==="daily"){ if(d<=now) d.setDate(d.getDate()+1); }
+  else if(cfg.freq==="weekly"){
+    const target=(parseInt(cfg.weekday)+1)%7; // 0=周一 -> JS 周一=1
+    let add=(target-d.getDay()+7)%7;
+    if(add===0 && d<=now) add=7;
+    d.setDate(d.getDate()+add);
+  } else { // monthly
+    d.setDate(parseInt(cfg.monthday));
+    if(d<=now) d.setMonth(d.getMonth()+1);
+  }
+  return d;
+}
+function loadSchedule(){
+  const raw=localStorage.getItem("obitaSchedule");
+  const el=document.getElementById("schedInfo");
+  if(!raw){ el.style.display="none"; return; }
+  const cfg=JSON.parse(raw);
+  el.style.display="block";
+  el.innerHTML=`下一个结算日是：<b>${fmt(nextSettleDate(cfg))}</b>`;
+}
+
+function render(){
+  document.getElementById("rows").innerHTML = orders.map(o=>{
+    const pmCell = o.pm==="-" ? '<span class="muted">-</span>'
+      : `<div class="pm"><span class="pmico">${pmIcon[o.pm]||"▦"}</span> ${o.pm}</div>`;
+    return `<tr>
+      <td>${o.c}</td>
+      <td><a class="oid" href="#" title="${o.id}">${shortId(o.id)}</a></td>
+      <td><div class="amt">USD ${o.usd.toFixed(2)}</div><span class="paid ${o.under?'under':''}">${o.paid}</span></td>
+      <td>${pmCell}</td>
+      <td class="${stClass[o.st]}">${stText[o.st]}</td>
+      <td class="${o.pa==='-'?'muted':''}">${o.pa}</td>
+      <td class="details">Details</td>
+    </tr>`;
+  }).join("");
+
+  const cnt=unsettled().length, amt=unsettledTotal();
+  document.getElementById("statAmt").textContent = "USD "+amt.toFixed(2);
+  document.getElementById("statCnt").textContent = cnt;
+  document.getElementById("statPend").textContent = orders.filter(o=>o.st==="Pending").length;
+  document.getElementById("settleBtn").disabled = cnt===0;
+
+  const batch=unsettled();
+  const fee=settleFee(batch);
+  let hint=`你有 <b>${cnt}</b> 笔订单可结算，结算金额为 <b>USD ${amt.toFixed(2)}</b>`;
+  if(fee===0){
+    hint+=`<br>本次为今日首次结算，<b>免结算手续费</b>`;
+  }else{
+    const ws=batch.filter(o=>o.pm==="Wallet Scan").length;
+    hint+=`<br>结算手续费 <b>USD ${fee.toFixed(2)}</b>（Wallet Scan ${ws} 笔×1 + 其他 ${cnt-ws} 笔×0.2），实际入账 <b>USD ${(amt-fee).toFixed(2)}</b>`;
+  }
+  document.getElementById("nowHint").innerHTML = hint;
+  loadSchedule();
+}
+render();
+
+// Modal
+const overlay=document.getElementById("overlay");
+function openSettle(){ render(); overlay.classList.add("show"); }
+function closeSettle(){ overlay.classList.remove("show"); }
+overlay.addEventListener("click",e=>{if(e.target===overlay)closeSettle();});
+
+function onMode(){
+  const sched=document.querySelector('input[name=settleMode]:checked').value==="sched";
+  document.getElementById("sched").classList.toggle("show",sched);
+  document.getElementById("optNow").classList.toggle("sel",!sched);
+  document.getElementById("optSched").classList.toggle("sel",sched);
+}
+function onFreq(){
+  const f=document.getElementById("freq").value;
+  document.getElementById("weekdayField").style.display=f==="weekly"?"block":"none";
+  document.getElementById("dayField").style.display    =f==="monthly"?"block":"none";
+}
+const wd=["周一","周二","周三","周四","周五","周六","周日"];
+document.getElementById("weekday").innerHTML=wd.map((d,i)=>`<option value="${i}">${d}</option>`).join("");
+let md="";for(let i=1;i<=31;i++)md+=`<option value="${i}">${i}号</option>`;
+document.getElementById("monthday").innerHTML=md;
+let hr="";for(let i=0;i<24;i++){const h=String(i).padStart(2,"0");hr+=`<option value="${i}">${h}:00</option>`;}
+document.getElementById("hour").innerHTML=hr;
+
+function notify(title,msg,done){
+  const t=document.createElement("div");
+  t.className="toast"+(done?" done":"");
+  t.innerHTML=`<div class="tico">${done?"✓":"⏳"}</div>
+    <div class="tbody"><div class="ttl">${title}</div><div class="msg">${msg}</div></div>
+    <div class="tx">✕</div>`;
+  t.onclick=()=>{ t.classList.remove("show"); setTimeout(()=>t.remove(),350); };
+  document.getElementById("toasts").appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add("show")));
+}
+
+function addToFiatUSD(amount){
+  const k="obitaUsdBalance";
+  const cur=parseFloat(localStorage.getItem(k)||"0");
+  localStorage.setItem(k,(cur+amount).toFixed(2));
+}
+
+function confirmSettle(){
+  const mode=document.querySelector('input[name=settleMode]:checked').value;
+  if(mode==="now"){
+    const batch=unsettled();
+    if(batch.length===0){ alert("当前没有可结算的订单"); return; }
+    const amt=unsettledTotal();
+    const fee=settleFee(batch);
+    const net=amt-fee;
+    batch.forEach(o=>o.st="Settling");
+    localStorage.setItem("obitaLastSettleDay",todayKey());
+    addToFiatUSD(net);
+    render(); closeSettle();
+    const feeLine = fee===0 ? "今日首次结算，免手续费" : `手续费 USD ${fee.toFixed(2)}`;
+    notify("结算已发起",
+      `${batch.length} 笔订单，结算金额 USD ${amt.toFixed(2)}，${feeLine}，实际入账 USD ${net.toFixed(2)}。状态：结算中`,
+      false);
+    setTimeout(()=>{
+      batch.forEach(o=>o.st="Settled"); render();
+      notify("结算已完成",
+        `${batch.length} 笔订单已结算，USD ${net.toFixed(2)} 已入账 Fiat Assets · USD 余额`,
+        true);
+    },5000);
+    return;
+  }
+  const f=document.getElementById("freq").value;
+  const cfg={freq:f,hour:document.getElementById("hour").value,
+             weekday:document.getElementById("weekday").value,
+             monthday:document.getElementById("monthday").value};
+  localStorage.setItem("obitaSchedule",JSON.stringify(cfg));
+  const h=document.getElementById("hour").selectedOptions[0].text;
+  let msg;
+  if(f==="daily")  msg=`已设置：每日 ${h} 结算`;
+  if(f==="weekly") msg=`已设置：每周${wd[document.getElementById("weekday").value]} ${h} 结算`;
+  if(f==="monthly")msg=`已设置：每月 ${document.getElementById("monthday").value} 号 ${h} 结算`;
+  loadSchedule();
+  alert(msg); closeSettle();
+}
+</script>
+</body>
+</html>
