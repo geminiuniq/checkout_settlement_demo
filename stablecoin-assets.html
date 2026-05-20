@@ -161,8 +161,15 @@
   .wallet-row input{flex:1;}
   .verify-btn{background:var(--gold);color:#fff;border:none;font-weight:700;font-size:13px;padding:0 18px;border-radius:9px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
   .verify-btn:hover{background:#d99a1d;}
-  .verify-status{margin-top:7px;font-size:12.5px;color:var(--muted);}
-  .verify-status.ok{color:var(--green);font-weight:700;}
+  .verify-status{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;}
+  .vchip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-weight:600;font-size:11.5px;background:#eef1f6;color:#52606d;}
+  .vchip.type{background:#eaf0ff;color:var(--blue);}
+  .vchip.method{background:#f3eaff;color:#7c5cff;}
+  .vchip.file{background:#fff3da;color:#a07310;}
+  .vchip.state-unverified{background:#fdeced;color:#c14b56;}
+  .vchip.state-pending{background:#fff3da;color:#a07310;}
+  .vchip.state-verified{background:#e3f7ee;color:var(--green);}
+  .vchip-link{margin-left:4px;color:var(--blue);font-weight:700;text-decoration:underline;cursor:pointer;background:none;border:none;padding:0;font-size:11.5px;}
 
   /* status chips on address card */
   .chip.warn{background:#fff3da;color:#a07310;}
@@ -363,7 +370,7 @@
             <input id="f_addr" placeholder="Enter wallet address">
             <button type="button" class="verify-btn" onclick="openVerify()">🛡 验证钱包</button>
           </div>
-          <div class="verify-status" id="verifyStatus">状态：未验证</div></div>
+          <div class="verify-status" id="verifyStatus"></div></div>
         <div class="fld"><label>Memo / Tag (optional)</label>
           <input id="f_memo" placeholder="If required by the network"></div>
         <label class="confirm-chk"><input type="checkbox" id="f_owned">
@@ -567,7 +574,9 @@
         alias:v("f_alias"), net:v("f_net"),
         hash:hash.length>16?hash.slice(0,6)+"..."+hash.slice(-4):hash,
         active:true, type:"Company",
-        verified:formVerified, verifyMethod:formVerifyMethod,
+        verified:formV.state==="verified",
+        pending:formV.state==="pending",
+        verifyType:formV.type, verifyMethod:formV.method, verifyFile:formV.file, verifyAmount:formV.amount,
         company:{name:v("f_cname"),nick:v("f_cnick"),email:v("f_cmail"),
                  country:v("f_country"),dial:v("f_dial"),phone:v("f_phone"),address:v("f_caddr")},
         account:{memo:v("f_memo"),fullAddr:hash}
@@ -576,23 +585,48 @@
     }
   }
   // Verification state
-  let vType=null, vMethod=null, vStep=1, formVerified=false, formVerifyMethod="";
+  let vType=null, vMethod=null, vStep=1, vMicroAmt=null;
+  // Persistent on the form once user goes through verification
+  let formV={ entered:false, type:null, method:null, file:null, amount:null, state:"unverified" /* unverified|pending|verified */ };
+
+  const TYPE_LABEL={private:"Private Wallet",exchange:"Exchange / Custodial"};
+  const METHOD_LABEL={sign:"钱包验签",micro:"小额打款",doc:"上传证明文件"};
 
   function resetVerifyForm(){
-    formVerified=false; formVerifyMethod="";
-    const el=document.getElementById("verifyStatus");
-    if(el){ el.className="verify-status"; el.textContent="状态：未验证"; }
+    formV={ entered:false, type:null, method:null, file:null, amount:null, state:"unverified" };
+    renderFormStatus();
+  }
+
+  function renderFormStatus(){
+    const el=document.getElementById("verifyStatus"); if(!el) return;
+    const chips=[];
+    if(formV.entered){
+      if(formV.type)   chips.push(`<span class="vchip type">钱包类型：${TYPE_LABEL[formV.type]}</span>`);
+      if(formV.method) chips.push(`<span class="vchip method">验证方式：${METHOD_LABEL[formV.method]}</span>`);
+      if(formV.method==="micro" && formV.amount!=null)
+        chips.push(`<span class="vchip">金额：USDT ${formV.amount}</span>`);
+      if(formV.file)   chips.push(`<span class="vchip file">📎 ${formV.file}</span>`);
+    }
+    if(formV.state==="verified")      chips.push(`<span class="vchip state-verified">✓ 已验证</span>`);
+    else if(formV.state==="pending")  chips.push(`<span class="vchip state-pending">⏳ 等待审核</span>
+      <button class="vchip-link" onclick="vApproveReview()">模拟审核通过</button>`);
+    else                              chips.push(`<span class="vchip state-unverified">未验证</span>`);
+    el.innerHTML=chips.join("");
   }
 
   function openVerify(){
-    vType=null; vMethod=null; vStep=1;
+    vType=formV.type; vMethod=null; vStep=1; vMicroAmt=null;
     renderVerify();
     document.getElementById("verifyOv").classList.add("show");
   }
   function closeVerify(){ document.getElementById("verifyOv").classList.remove("show"); }
 
   function vPickType(t){ vType=t; vStep=2; renderVerify(); }
-  function vPickMethod(m){ vMethod=m; vStep=3; renderVerify(); }
+  function vPickMethod(m){
+    vMethod=m;
+    if(m==="micro") vMicroAmt=(0.10+Math.random()*0.90).toFixed(2); // 随机生成一次
+    vStep=3; renderVerify();
+  }
   function vBack(){
     if(vStep===1) return closeVerify();
     vStep--; renderVerify();
@@ -655,33 +689,53 @@
             <div class="w" onclick="vSimulate('WalletConnect')"><span class="e">◈</span>WalletConnect</div>
           </div>`;
       } else if(vMethod==="micro"){
-        const amt=(0.1+Math.random()*0.5).toFixed(2);
-        html+=`<div class="hdr">小额打款</div>
+        html+=`<div class="hdr">小额打款 · 本次验证额度</div>
           <div class="info">
-            请在 24 小时内，使用待验证钱包向以下 Obita 地址打款 <b>USDT ${amt}</b>：<br>
+            请在 24 小时内，使用待验证钱包向以下 Obita 地址打款 <b style="font-size:15px;color:var(--blue)">USDT ${vMicroAmt}</b>：<br>
             <b style="font-family:ui-monospace,Menlo,monospace">TQ4w...obitaMERCHANT...9aZ</b><br>
-            到账后系统将自动核对金额并完成验证。
+            到账金额必须与本次随机生成的额度一致。系统核对通过后自动完成验证。<br>
+            <span style="color:var(--muted)">（每次发起验证均会重新随机生成额度）</span>
           </div>
-          <button class="btn primary" onclick="vSimulate('小额打款')">我已完成打款 / 模拟到账</button>`;
+          <button class="btn primary" onclick="vCompleteSign()">我已完成打款 / 模拟到账</button>`;
       } else if(vMethod==="doc"){
         html+=`<div class="hdr">上传控制权证明文件</div>
           <div class="info">请上传能够证明你对该待验证钱包拥有完整控制权的证明文件（PDF / 图片，单文件 ≤ 10MB）。</div>
-          <input type="file" style="font-size:13px"><br><br>
-          <button class="btn primary" onclick="vSimulate('上传证明文件')">提交并完成验证</button>`;
+          <input type="file" id="vFile" style="font-size:13px"><br><br>
+          <button class="btn primary" onclick="vSubmitDoc()">提交并等待审核</button>`;
       }
       html+=`</div>`;
       s3.innerHTML=html;
     }
   }
 
-  function vSimulate(method){
-    formVerified=true; formVerifyMethod=method;
-    const el=document.getElementById("verifyStatus");
-    el.className="verify-status ok";
-    el.textContent="✓ 状态：已验证（"+method+"）";
-    closeVerify();
+  function vSimulate(walletApp){
+    formV.entered=true; formV.type=vType; formV.method="sign"; formV.amount=null; formV.file=null;
+    formV.state="verified";
+    renderFormStatus(); closeVerify();
   }
-  function vComplete(){ vSimulate(vMethod==="sign"?"钱包验签":vMethod==="micro"?"小额打款":"上传证明文件"); }
+  function vCompleteSign(){
+    formV.entered=true; formV.type=vType; formV.method="micro";
+    formV.amount=vMicroAmt; formV.file=null; formV.state="verified";
+    renderFormStatus(); closeVerify();
+  }
+  function vSubmitDoc(){
+    const inp=document.getElementById("vFile");
+    const name=inp&&inp.files&&inp.files[0]?inp.files[0].name:null;
+    if(!name){ alert("请先选择文件"); return; }
+    formV.entered=true; formV.type=vType; formV.method="doc";
+    formV.file=name; formV.amount=null; formV.state="pending";
+    renderFormStatus(); closeVerify();
+  }
+  function vApproveReview(){
+    if(formV.state!=="pending") return;
+    formV.state="verified"; renderFormStatus();
+  }
+  // 旧入口：保留 vComplete 按钮兼容性
+  function vComplete(){
+    if(vMethod==="sign") vSimulate("钱包验签");
+    else if(vMethod==="micro") vCompleteSign();
+    else if(vMethod==="doc") vSubmitDoc();
+  }
 
   function fillReview(){
     document.getElementById("r_company").innerHTML=`
@@ -696,7 +750,15 @@
       <div class="k">Network</div><div>${v("f_net")||"-"}</div>
       <div class="k">Wallet Address</div><div style="word-break:break-all">${v("f_addr")||"-"}</div>
       <div class="k">Memo</div><div>${v("f_memo")||"-"}</div>
-      <div class="k">Verification</div><div>${formVerified?'<b style="color:var(--green)">已验证</b> · '+formVerifyMethod:'<b style="color:#a07310">未验证</b>'}</div>`;
+      <div class="k">Wallet Type</div><div>${formV.type?TYPE_LABEL[formV.type]:"-"}</div>
+      <div class="k">Verify Method</div><div>${formV.method?METHOD_LABEL[formV.method]:"-"}</div>
+      ${formV.amount?`<div class="k">Micro Amount</div><div>USDT ${formV.amount}</div>`:""}
+      ${formV.file?`<div class="k">Uploaded File</div><div>${formV.file}</div>`:""}
+      <div class="k">Verification</div><div>${
+        formV.state==="verified"?'<b style="color:var(--green)">已验证</b>':
+        formV.state==="pending" ?'<b style="color:#a07310">等待审核</b>':
+                                 '<b style="color:#c14b56">未验证</b>'
+      }</div>`;
   }
 </script>
 </body>
