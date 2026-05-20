@@ -105,6 +105,30 @@
   .dlg-acts .btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;border:1px solid var(--line);background:#fff;cursor:pointer;}
   .dlg-acts .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
   .dlg-acts .btn.danger{color:#c14b56;border-color:#f1c4c8;}
+
+  /* Right-slide drawer */
+  .drawer-ov{position:fixed;inset:0;background:rgba(15,28,60,.40);opacity:0;pointer-events:none;transition:opacity .25s;z-index:70;}
+  .drawer-ov.show{opacity:1;pointer-events:auto;}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:520px;background:linear-gradient(180deg,#f6faff,#fff 30%);box-shadow:-20px 0 50px rgba(15,28,60,.18);transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:71;display:flex;flex-direction:column;}
+  .drawer.show{transform:translateX(0);}
+  .drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:28px 32px 18px;}
+  .drawer .dh h2{font-size:22px;font-weight:800;}
+  .drawer .dh .x{cursor:pointer;color:var(--muted);font-size:18px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .drawer .dh .x:hover{background:#eef1f6;}
+  .drawer .db{padding:8px 32px;flex:1;overflow:auto;}
+  .drawer .db h4{font-size:17px;font-weight:700;margin:18px 0 18px;}
+  .pick{display:flex;align-items:center;gap:16px;padding:18px 20px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;margin-bottom:14px;background:#fff;transition:border-color .15s,box-shadow .15s;}
+  .pick:hover{border-color:var(--blue);box-shadow:0 6px 18px rgba(47,107,255,.10);}
+  .pick .pi{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;flex:0 0 46px;}
+  .pick .pi.c{background:var(--blue);}
+  .pick .pi.i{background:var(--green);}
+  .pick .pt{flex:1;}
+  .pick .pt .t{font-size:16px;font-weight:700;}
+  .pick .pt .d{font-size:13px;color:var(--muted);margin-top:3px;}
+  .pick .arrow{color:#b9c2d2;font-size:18px;}
+  .drawer .df{padding:18px 32px 26px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;background:#fff;}
+  .drawer .df .btn{padding:10px 24px;border-radius:9px;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;cursor:pointer;}
+  .drawer .df .btn:hover{background:#f6f8fc;}
 </style>
 </head>
 <body>
@@ -189,13 +213,36 @@
     <aside class="addr-panel">
       <div class="addr-head">
         <h3>Address Book · 地址簿</h3>
-        <button class="add" onclick="alert('Add Address')">+ Add</button>
+        <button class="add" onclick="openAddDrawer()">+ Add</button>
       </div>
       <div class="addr-sub">仅地址簿中状态为 <b style="color:var(--green)">Active</b> 的地址可用于 Stablecoin 资产的充值与提现。</div>
       <div id="addrList"></div>
     </aside>
     </div><!-- /.layout -->
   </main>
+
+  <!-- Add Address drawer -->
+  <div class="drawer-ov" id="addDrawerOv" onclick="closeAddDrawer()"></div>
+  <div class="drawer" id="addDrawer">
+    <div class="dh">
+      <h2>Add New Address</h2>
+      <div class="x" onclick="closeAddDrawer()">✕</div>
+    </div>
+    <div class="db">
+      <h4>The address belongs to</h4>
+      <div class="pick" onclick="pickAddrType('Company')">
+        <div class="pi c">🏢</div>
+        <div class="pt"><div class="t">Company</div><div class="d">If the address belongs to a company</div></div>
+        <div class="arrow">›</div>
+      </div>
+      <div class="pick" onclick="pickAddrType('Individual')">
+        <div class="pi i">👤</div>
+        <div class="pt"><div class="t">Individual</div><div class="d">If the address belongs to an individual</div></div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+    <div class="df"><button class="btn" onclick="closeAddDrawer()">Cancel</button></div>
+  </div>
 
   <div class="ov" id="addrOv" onclick="if(event.target===this)closeAddr()">
     <div class="dlg">
@@ -278,6 +325,22 @@
     if(idx>=0 && idx<list.length) alert(`已选择「${list[idx].alias}」(${list[idx].net}) 进行${action==='topup'?'充值':'提现'}`);
   }
   renderAddrs();
+
+  function openAddDrawer(){
+    document.getElementById("addDrawerOv").classList.add("show");
+    document.getElementById("addDrawer").classList.add("show");
+  }
+  function closeAddDrawer(){
+    document.getElementById("addDrawerOv").classList.remove("show");
+    document.getElementById("addDrawer").classList.remove("show");
+  }
+  function pickAddrType(type){
+    const alias=prompt(`New ${type} address · Alias`); if(!alias) return;
+    const net=prompt("Network (TRC20 / ERC20 / Polygon / Arbitrum)","ERC20")||"ERC20";
+    const hash=prompt("Address","0x"+Math.random().toString(16).slice(2,10)+"...")||"0x...";
+    addresses.unshift({alias:alias.trim(),net,hash,active:true,type});
+    renderAddrs(); closeAddDrawer();
+  }
 </script>
 </body>
 </html>
