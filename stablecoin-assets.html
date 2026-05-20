@@ -129,6 +129,32 @@
   .drawer .df{padding:18px 32px 26px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;background:#fff;}
   .drawer .df .btn{padding:10px 24px;border-radius:9px;font-size:14px;font-weight:700;border:1px solid var(--line);background:#fff;cursor:pointer;}
   .drawer .df .btn:hover{background:#f6f8fc;}
+  .drawer .df .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);margin-left:10px;}
+  .drawer .df .btn.primary:hover{background:#1f51d6;}
+
+  /* Stepper */
+  .stepper{display:flex;align-items:center;gap:8px;padding:0 32px 18px;font-size:13px;color:var(--muted);flex-wrap:wrap;border-bottom:1px solid var(--line);}
+  .stepper .s{font-weight:600;}
+  .stepper .s.active{color:var(--ink);}
+  .stepper .arr{color:#c7cdd9;}
+
+  /* Form */
+  .form-title{font-size:18px;font-weight:800;margin:18px 0 16px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+  .fld{margin-bottom:14px;}
+  .fld label{display:block;font-size:13px;color:#52606d;margin-bottom:6px;font-weight:600;}
+  .fld label .req{color:#ff5b6a;}
+  .fld input,.fld select,.fld textarea{width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:9px;font-size:13.5px;background:#fff;outline:none;font-family:inherit;}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--blue);}
+  .fld input::placeholder{color:#aab1bf;}
+  .phone{display:grid;grid-template-columns:90px 1fr;gap:10px;}
+
+  /* Review */
+  .review-card{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px;}
+  .review-card h5{font-size:14px;font-weight:800;margin-bottom:12px;display:flex;justify-content:space-between;}
+  .review-card h5 .edit{color:var(--blue);font-size:12.5px;cursor:pointer;font-weight:600;}
+  .review-card .rk{display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:13px;}
+  .review-card .rk .k{color:var(--muted);}
 </style>
 </head>
 <body>
@@ -228,20 +254,100 @@
       <h2>Add New Address</h2>
       <div class="x" onclick="closeAddDrawer()">✕</div>
     </div>
+
+    <!-- Stepper (hidden on picker) -->
+    <div class="stepper" id="stepper" style="display:none">
+      <span class="s" id="stp1">1.Company Information</span><span class="arr">▸</span>
+      <span class="s" id="stp2">2.Add Receiving Account</span><span class="arr">▸</span>
+      <span class="s" id="stp3">3.Review & Confirm</span>
+    </div>
+
     <div class="db">
-      <h4>The address belongs to</h4>
-      <div class="pick" onclick="pickAddrType('Company')">
-        <div class="pi c">🏢</div>
-        <div class="pt"><div class="t">Company</div><div class="d">If the address belongs to a company</div></div>
-        <div class="arrow">›</div>
+      <!-- Picker -->
+      <div id="panePick">
+        <h4>The address belongs to</h4>
+        <div class="pick" onclick="pickAddrType('Company')">
+          <div class="pi c">🏢</div>
+          <div class="pt"><div class="t">Company</div><div class="d">If the address belongs to a company</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="pick" onclick="pickAddrType('Individual')">
+          <div class="pi i">👤</div>
+          <div class="pt"><div class="t">Individual</div><div class="d">If the address belongs to an individual</div></div>
+          <div class="arrow">›</div>
+        </div>
       </div>
-      <div class="pick" onclick="pickAddrType('Individual')">
-        <div class="pi i">👤</div>
-        <div class="pt"><div class="t">Individual</div><div class="d">If the address belongs to an individual</div></div>
-        <div class="arrow">›</div>
+
+      <!-- Step 1 · Company Information -->
+      <div id="pane1" style="display:none">
+        <div class="form-title">Company Information</div>
+        <div class="fld"><label>Company Name<span class="req">*</span></label>
+          <input id="f_cname" placeholder="Enter company name"></div>
+        <div class="grid2">
+          <div class="fld"><label>Company Nick name</label>
+            <input id="f_cnick" placeholder="Enter nick name"></div>
+          <div class="fld"><label>Contact Email</label>
+            <input id="f_cmail" placeholder="Enter contact email"></div>
+        </div>
+        <div class="grid2">
+          <div class="fld"><label>Country<span class="req">*</span></label>
+            <select id="f_country">
+              <option value="">Select Country/Region</option>
+              <option>Singapore</option><option>Hong Kong</option><option>United States</option>
+              <option>United Kingdom</option><option>Japan</option><option>Germany</option>
+              <option>China</option><option>Indonesia</option><option>Australia</option>
+            </select></div>
+          <div class="fld"><label>Phone Number</label>
+            <div class="phone">
+              <select id="f_dial">
+                <option value="+62">+62</option><option value="+1">+1</option><option value="+44">+44</option>
+                <option value="+65">+65</option><option value="+852">+852</option><option value="+86">+86</option>
+                <option value="+81">+81</option><option value="+49">+49</option>
+              </select>
+              <input id="f_phone" placeholder="Enter phone number">
+            </div></div>
+        </div>
+        <div class="fld"><label>Company Address<span class="req">*</span></label>
+          <input id="f_caddr" placeholder="Enter company address"></div>
+      </div>
+
+      <!-- Step 2 · Add Receiving Account -->
+      <div id="pane2" style="display:none">
+        <div class="form-title">Add Receiving Account</div>
+        <div class="fld"><label>Address Alias<span class="req">*</span></label>
+          <input id="f_alias" placeholder="e.g. Treasury · Tron"></div>
+        <div class="grid2">
+          <div class="fld"><label>Network<span class="req">*</span></label>
+            <select id="f_net">
+              <option>TRC20</option><option>ERC20</option><option>Polygon</option><option>Arbitrum</option><option>BSC</option><option>Solana</option>
+            </select></div>
+          <div class="fld"><label>Asset</label>
+            <select id="f_asset"><option>USDT</option><option>USDC</option></select></div>
+        </div>
+        <div class="fld"><label>Wallet Address<span class="req">*</span></label>
+          <input id="f_addr" placeholder="Enter wallet address"></div>
+        <div class="fld"><label>Memo / Tag (optional)</label>
+          <input id="f_memo" placeholder="If required by the network"></div>
+      </div>
+
+      <!-- Step 3 · Review -->
+      <div id="pane3" style="display:none">
+        <div class="form-title">Review & Confirm</div>
+        <div class="review-card">
+          <h5>Company Information <span class="edit" onclick="goStep(1)">Edit</span></h5>
+          <div class="rk" id="r_company"></div>
+        </div>
+        <div class="review-card">
+          <h5>Receiving Account <span class="edit" onclick="goStep(2)">Edit</span></h5>
+          <div class="rk" id="r_account"></div>
+        </div>
       </div>
     </div>
-    <div class="df"><button class="btn" onclick="closeAddDrawer()">Cancel</button></div>
+
+    <div class="df" id="drawerFooter">
+      <button class="btn" id="btnBack" onclick="drawerBack()">Cancel</button>
+      <button class="btn primary" id="btnNext" onclick="drawerNext()" style="display:none">Save &amp; Continue</button>
+    </div>
   </div>
 
   <div class="ov" id="addrOv" onclick="if(event.target===this)closeAddr()">
@@ -326,7 +432,10 @@
   }
   renderAddrs();
 
+  let drawerType=null, drawerStep=0; // 0=picker, 1/2/3=steps
+
   function openAddDrawer(){
+    drawerType=null; goStep(0);
     document.getElementById("addDrawerOv").classList.add("show");
     document.getElementById("addDrawer").classList.add("show");
   }
@@ -335,11 +444,74 @@
     document.getElementById("addDrawer").classList.remove("show");
   }
   function pickAddrType(type){
-    const alias=prompt(`New ${type} address · Alias`); if(!alias) return;
-    const net=prompt("Network (TRC20 / ERC20 / Polygon / Arbitrum)","ERC20")||"ERC20";
-    const hash=prompt("Address","0x"+Math.random().toString(16).slice(2,10)+"...")||"0x...";
-    addresses.unshift({alias:alias.trim(),net,hash,active:true,type});
-    renderAddrs(); closeAddDrawer();
+    drawerType=type;
+    if(type==="Individual"){
+      // Individual：保留简易输入（占位）
+      const alias=prompt("Individual address · Alias"); if(!alias){return;}
+      const net=prompt("Network","ERC20")||"ERC20";
+      const hash=prompt("Address","0x"+Math.random().toString(16).slice(2,10)+"...")||"0x...";
+      addresses.unshift({alias:alias.trim(),net,hash,active:true,type});
+      renderAddrs(); closeAddDrawer(); return;
+    }
+    goStep(1);
+  }
+  function goStep(n){
+    drawerStep=n;
+    document.getElementById("panePick").style.display = n===0?"block":"none";
+    document.getElementById("pane1").style.display    = n===1?"block":"none";
+    document.getElementById("pane2").style.display    = n===2?"block":"none";
+    document.getElementById("pane3").style.display    = n===3?"block":"none";
+    document.getElementById("stepper").style.display  = n===0?"none":"flex";
+    ["stp1","stp2","stp3"].forEach((id,i)=>{
+      document.getElementById(id).classList.toggle("active",i+1===n);
+    });
+    document.getElementById("btnBack").textContent = n<=1?"Cancel":"Back";
+    document.getElementById("btnNext").style.display = n===0?"none":"inline-block";
+    document.getElementById("btnNext").textContent = n===3?"Confirm":"Save & Continue";
+    if(n===3) fillReview();
+  }
+  function drawerBack(){
+    if(drawerStep<=1) closeAddDrawer();
+    else goStep(drawerStep-1);
+  }
+  function v(id){ return document.getElementById(id).value.trim(); }
+  function drawerNext(){
+    if(drawerStep===1){
+      if(!v("f_cname")){ alert("请填写 Company Name"); return; }
+      if(!v("f_country")){ alert("请选择 Country"); return; }
+      if(!v("f_caddr")){ alert("请填写 Company Address"); return; }
+      goStep(2);
+    } else if(drawerStep===2){
+      if(!v("f_alias")){ alert("请填写 Address Alias"); return; }
+      if(!v("f_addr")){ alert("请填写 Wallet Address"); return; }
+      goStep(3);
+    } else if(drawerStep===3){
+      const hash=v("f_addr");
+      addresses.unshift({
+        alias:v("f_alias"), net:v("f_net"),
+        hash:hash.length>16?hash.slice(0,6)+"..."+hash.slice(-4):hash,
+        active:true, type:"Company",
+        company:{name:v("f_cname"),nick:v("f_cnick"),email:v("f_cmail"),
+                 country:v("f_country"),dial:v("f_dial"),phone:v("f_phone"),address:v("f_caddr")},
+        account:{asset:v("f_asset"),memo:v("f_memo"),fullAddr:hash}
+      });
+      renderAddrs(); closeAddDrawer();
+    }
+  }
+  function fillReview(){
+    document.getElementById("r_company").innerHTML=`
+      <div class="k">Company Name</div><div>${v("f_cname")||"-"}</div>
+      <div class="k">Nick name</div><div>${v("f_cnick")||"-"}</div>
+      <div class="k">Contact Email</div><div>${v("f_cmail")||"-"}</div>
+      <div class="k">Country</div><div>${v("f_country")||"-"}</div>
+      <div class="k">Phone</div><div>${v("f_phone")?v("f_dial")+" "+v("f_phone"):"-"}</div>
+      <div class="k">Address</div><div>${v("f_caddr")||"-"}</div>`;
+    document.getElementById("r_account").innerHTML=`
+      <div class="k">Alias</div><div>${v("f_alias")||"-"}</div>
+      <div class="k">Network</div><div>${v("f_net")||"-"}</div>
+      <div class="k">Asset</div><div>${v("f_asset")||"-"}</div>
+      <div class="k">Wallet Address</div><div style="word-break:break-all">${v("f_addr")||"-"}</div>
+      <div class="k">Memo</div><div>${v("f_memo")||"-"}</div>`;
   }
 </script>
 </body>
