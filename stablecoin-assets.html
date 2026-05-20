@@ -155,6 +155,8 @@
   .review-card h5 .edit{color:var(--blue);font-size:12.5px;cursor:pointer;font-weight:600;}
   .review-card .rk{display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:13px;}
   .review-card .rk .k{color:var(--muted);}
+  .confirm-chk{display:flex;gap:10px;align-items:flex-start;margin-top:6px;padding:12px 14px;background:#f3f7ff;border:1px solid #d9e3ff;border-radius:10px;font-size:13px;color:#3b4a63;cursor:pointer;line-height:1.5;}
+  .confirm-chk input{margin-top:2px;accent-color:var(--blue);width:16px;height:16px;flex:0 0 16px;}
 </style>
 </head>
 <body>
@@ -311,23 +313,21 @@
           <input id="f_caddr" placeholder="Enter company address"></div>
       </div>
 
-      <!-- Step 2 · Add Receiving Account -->
+      <!-- Step 2 -->
       <div id="pane2" style="display:none">
-        <div class="form-title">Add Receiving Account</div>
         <div class="fld"><label>Address Alias<span class="req">*</span></label>
           <input id="f_alias" placeholder="e.g. Treasury · Tron"></div>
-        <div class="grid2">
-          <div class="fld"><label>Network<span class="req">*</span></label>
-            <select id="f_net">
-              <option>TRC20</option><option>ERC20</option><option>Polygon</option><option>Arbitrum</option><option>BSC</option><option>Solana</option>
-            </select></div>
-          <div class="fld"><label>Asset</label>
-            <select id="f_asset"><option>USDT</option><option>USDC</option></select></div>
-        </div>
+        <div class="fld"><label>Network<span class="req">*</span></label>
+          <select id="f_net">
+            <option>Ethereum</option>
+            <option>Tron Network</option>
+          </select></div>
         <div class="fld"><label>Wallet Address<span class="req">*</span></label>
           <input id="f_addr" placeholder="Enter wallet address"></div>
         <div class="fld"><label>Memo / Tag (optional)</label>
           <input id="f_memo" placeholder="If required by the network"></div>
+        <label class="confirm-chk"><input type="checkbox" id="f_owned">
+          <span>I hereby confirm that this wallet is owned and controlled by this merchant.</span></label>
       </div>
 
       <!-- Step 3 · Review -->
@@ -484,6 +484,9 @@
     } else if(drawerStep===2){
       if(!v("f_alias")){ alert("请填写 Address Alias"); return; }
       if(!v("f_addr")){ alert("请填写 Wallet Address"); return; }
+      if(!document.getElementById("f_owned").checked){
+        alert("请勾选 “I hereby confirm that this wallet is owned and controlled by this merchant.”"); return;
+      }
       goStep(3);
     } else if(drawerStep===3){
       const hash=v("f_addr");
@@ -493,7 +496,7 @@
         active:true, type:"Company",
         company:{name:v("f_cname"),nick:v("f_cnick"),email:v("f_cmail"),
                  country:v("f_country"),dial:v("f_dial"),phone:v("f_phone"),address:v("f_caddr")},
-        account:{asset:v("f_asset"),memo:v("f_memo"),fullAddr:hash}
+        account:{memo:v("f_memo"),fullAddr:hash}
       });
       renderAddrs(); closeAddDrawer();
     }
@@ -509,7 +512,6 @@
     document.getElementById("r_account").innerHTML=`
       <div class="k">Alias</div><div>${v("f_alias")||"-"}</div>
       <div class="k">Network</div><div>${v("f_net")||"-"}</div>
-      <div class="k">Asset</div><div>${v("f_asset")||"-"}</div>
       <div class="k">Wallet Address</div><div style="word-break:break-all">${v("f_addr")||"-"}</div>
       <div class="k">Memo</div><div>${v("f_memo")||"-"}</div>`;
   }
