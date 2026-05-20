@@ -436,7 +436,7 @@
         <div class="k">Status</div><div class="v" id="dlgStatus"></div>
       </div>
       <div class="dlg-acts">
-        <button class="btn" onclick="dlgToggle()" id="dlgToggle">禁用</button>
+        <button class="btn" id="dlgVerify" onclick="dlgVerifyAddr()" style="display:none">🛡 验证钱包</button>
         <button class="btn primary" onclick="dlgEdit()">编辑</button>
         <button class="btn danger" onclick="dlgDelete()">删除</button>
       </div>
@@ -482,14 +482,22 @@
     document.getElementById("dlgAlias").textContent=a.alias;
     document.getElementById("dlgNet").textContent=a.net;
     document.getElementById("dlgHash").textContent=a.hash;
-    document.getElementById("dlgStatus").innerHTML=
-      `<span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>
-       <span class="chip ${a.verified?'on':'warn'}" style="margin-left:6px">${a.verified?'已验证':'未验证'}</span>`;
-    document.getElementById("dlgToggle").textContent=a.active?'禁用':'启用';
+    const state = a.verified?"verified":(a.pending?"pending":"unverified");
+    const chips=[];
+    chips.push(`<span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>`);
+    chips.push(`<span class="vchip state-${state}">${state==="verified"?'✓ 已验证':state==="pending"?'⏳ 等待审核':'未验证'}</span>`);
+    if(a.verifyType)   chips.push(`<span class="vchip type">${TYPE_LABEL[a.verifyType]||a.verifyType}</span>`);
+    if(a.verifyMethod) chips.push(`<span class="vchip method">${METHOD_LABEL[a.verifyMethod]||a.verifyMethod}</span>`);
+    if(a.verifyAmount) chips.push(`<span class="vchip">金额：USDT ${a.verifyAmount}</span>`);
+    if(a.verifyFile)   chips.push(`<span class="vchip file">📎 ${a.verifyFile}</span>`);
+    if(state==="pending") chips.push(`<button class="vchip-link" onclick="approvePending(${i})">模拟审核通过</button>`);
+    document.getElementById("dlgStatus").innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${chips.join("")}</div>`;
+    document.getElementById("dlgVerify").style.display = a.verified?"none":"inline-block";
     document.getElementById("addrOv").classList.add("show");
   }
   function closeAddr(){ document.getElementById("addrOv").classList.remove("show"); }
-  function dlgToggle(){ addresses[detailIdx].active=!addresses[detailIdx].active; renderAddrs(); openAddr(detailIdx); }
+  function approvePending(i){ addresses[i].pending=false; addresses[i].verified=true; renderAddrs(); openAddr(i); }
+  function dlgVerifyAddr(){ openVerifyForAddr(detailIdx); }
   function dlgEdit(){
     const a=addresses[detailIdx];
     const v=prompt("编辑 Alias",a.alias); if(v===null) return;
@@ -614,12 +622,38 @@
     el.innerHTML=chips.join("");
   }
 
+  let vTargetIdx=-1; // -1 = new-address form;  >=0 = existing address
   function openVerify(){
+    vTargetIdx=-1;
     vType=formV.type; vMethod=null; vStep=1; vMicroAmt=null;
     renderVerify();
     document.getElementById("verifyOv").classList.add("show");
   }
+  function openVerifyForAddr(i){
+    vTargetIdx=i;
+    vType=addresses[i].verifyType||null; vMethod=null; vStep=1; vMicroAmt=null;
+    renderVerify();
+    document.getElementById("verifyOv").classList.add("show");
+  }
   function closeVerify(){ document.getElementById("verifyOv").classList.remove("show"); }
+
+  function applyVerify(state, fields){
+    if(vTargetIdx<0){
+      Object.assign(formV,{entered:true,state,...fields});
+      renderFormStatus();
+    } else {
+      const a=addresses[vTargetIdx];
+      a.verifyType   = fields.type   !== undefined ? fields.type   : a.verifyType;
+      a.verifyMethod = fields.method !== undefined ? fields.method : a.verifyMethod;
+      a.verifyFile   = fields.file   !== undefined ? fields.file   : a.verifyFile;
+      a.verifyAmount = fields.amount !== undefined ? fields.amount : a.verifyAmount;
+      a.verified = state==="verified";
+      a.pending  = state==="pending";
+      renderAddrs();
+      openAddr(vTargetIdx);
+    }
+    closeVerify();
+  }
 
   function vPickType(t){ vType=t; vStep=2; renderVerify(); }
   function vPickMethod(m){
@@ -709,22 +743,16 @@
   }
 
   function vSimulate(walletApp){
-    formV.entered=true; formV.type=vType; formV.method="sign"; formV.amount=null; formV.file=null;
-    formV.state="verified";
-    renderFormStatus(); closeVerify();
+    applyVerify("verified",{type:vType,method:"sign",amount:null,file:null});
   }
   function vCompleteSign(){
-    formV.entered=true; formV.type=vType; formV.method="micro";
-    formV.amount=vMicroAmt; formV.file=null; formV.state="verified";
-    renderFormStatus(); closeVerify();
+    applyVerify("verified",{type:vType,method:"micro",amount:vMicroAmt,file:null});
   }
   function vSubmitDoc(){
     const inp=document.getElementById("vFile");
     const name=inp&&inp.files&&inp.files[0]?inp.files[0].name:null;
     if(!name){ alert("请先选择文件"); return; }
-    formV.entered=true; formV.type=vType; formV.method="doc";
-    formV.file=name; formV.amount=null; formV.state="pending";
-    renderFormStatus(); closeVerify();
+    applyVerify("pending",{type:vType,method:"doc",file:name,amount:null});
   }
   function vApproveReview(){
     if(formV.state!=="pending") return;
