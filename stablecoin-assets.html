@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obita · Stablecoin Assets</title>
+<script>if(!sessionStorage.getItem("obitaUser"))location.replace("login.html");</script>
+<style>
+  :root{
+    --blue:#2f6bff;--sidebar-top:#1f5cff;--sidebar-bottom:#0c2f8f;
+    --ink:#1f2937;--muted:#8a93a3;--line:#eef1f6;--bg:#f4f6fb;
+    --green:#1bb673;--gold:#f0ad24;--amber:#e7a93b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{background:var(--bg);color:var(--ink);display:flex;min-height:100vh;font-size:13px;}
+
+  .sidebar{width:230px;flex:0 0 230px;background:linear-gradient(180deg,var(--sidebar-top),var(--sidebar-bottom));color:#fff;padding:24px 0;position:sticky;top:0;height:100vh;overflow:auto;}
+  .logo{font-size:28px;font-weight:800;letter-spacing:.5px;padding:0 26px 26px;}
+  .nav-item{display:grid;grid-template-columns:20px 1fr 12px;align-items:center;column-gap:12px;padding:11px 20px;font-size:14px;color:#dce6ff;cursor:pointer;border-radius:9px;margin:2px 12px;text-decoration:none;}
+  .nav-item .ico{width:20px;height:20px;border-radius:6px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .nav-item:hover{background:rgba(255,255,255,.08);}
+  .nav-item.open{background:rgba(255,255,255,.10);}
+  .nav-item .chev{justify-self:end;opacity:.55;font-size:11px;}
+  .sub{padding:1px 0 4px;}
+  .sub-item{display:flex;align-items:center;padding:9px 20px 9px 52px;font-size:13px;color:#cfe0ff;cursor:pointer;border-radius:8px;margin:2px 12px;text-decoration:none;}
+  .sub-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:600;}
+  .sub-item:hover{background:rgba(255,255,255,.08);}
+
+  .main{flex:1;padding:24px 32px;overflow:auto;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .crumbs{font-size:16px;color:var(--muted);}
+  .crumbs b{color:var(--ink);}
+  .crumbs .sep{margin:0 9px;color:#c7cdd9;}
+  .top-right{display:flex;align-items:center;gap:10px;}
+  .company{display:flex;align-items:center;gap:8px;background:#fff;padding:7px 14px;border-radius:24px;font-weight:600;font-size:13px;box-shadow:0 2px 8px rgba(20,40,90,.05);}
+  .company .av{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#5b8cff,#2f6bff);}
+  .pill{display:flex;align-items:center;gap:5px;background:#e7eefc;color:var(--blue);padding:8px 12px;border-radius:24px;font-weight:600;font-size:12px;height:36px;}
+  .icon-btn{width:36px;height:36px;border-radius:50%;background:#e7eefc;display:flex;align-items:center;justify-content:center;color:var(--blue);position:relative;font-size:14px;}
+  .icon-btn .dot{position:absolute;top:8px;right:9px;width:6px;height:6px;border-radius:50%;background:#ff5b6a;}
+  .reset-btn{height:36px;padding:0 16px;border:1px solid var(--blue);background:#fff;color:var(--blue);font-size:12px;font-weight:700;border-radius:24px;cursor:pointer;}
+  .reset-btn:hover{background:#eef3ff;}
+
+  .banner{background:linear-gradient(120deg,#2f6bff,#3f78ff);border-radius:16px;padding:26px 36px 24px;color:#fff;position:relative;overflow:hidden;margin-bottom:18px;}
+  .banner::after{content:"";position:absolute;right:-50px;top:-30px;width:520px;height:280px;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 60%);}
+  .bal-row{display:flex;gap:120px;position:relative;z-index:1;margin-bottom:18px;}
+  .bal .label{font-size:14px;opacity:.95;margin-bottom:8px;}
+  .bal .label.warn{color:#ffd24a;}
+  .bal .val{font-size:30px;font-weight:800;}
+  .updated{font-size:12px;opacity:.85;position:relative;z-index:1;line-height:1.7;}
+
+  .alert{background:#fff7d6;border-radius:10px;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#6b5a20;margin-bottom:22px;}
+  .alert .x{color:#a08a3c;cursor:pointer;font-size:15px;padding-left:14px;}
+
+  .tabs{display:flex;gap:34px;margin:0 0 14px 8px;}
+  .tab{padding:10px 0;font-size:15px;color:var(--muted);font-weight:700;cursor:pointer;position:relative;}
+  .tab.active{color:var(--ink);}
+  .tab.active::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--blue);border-radius:2px;}
+
+  .asset{background:#fff;border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:18px;margin-bottom:14px;box-shadow:0 3px 12px rgba(20,40,90,.04);}
+  .coin{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:700;flex:0 0 42px;}
+  .coin.usdt{background:var(--green);}
+  .coin.usdc{background:#2775ca;}
+  .ccy{min-width:170px;}
+  .ccy .nm{font-size:18px;font-weight:700;}
+  .ccy .rt{font-size:11.5px;color:var(--muted);margin-top:3px;}
+  .amt{flex:1;text-align:center;}
+  .amt .big{font-size:22px;font-weight:700;}
+  .amt .sub{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .btn{padding:10px 20px;border-radius:9px;font-size:13px;font-weight:700;border:none;cursor:pointer;}
+  .btn.blue{background:var(--blue);color:#fff;margin-right:10px;}
+  .btn.blue:hover{background:#1f51d6;}
+  .btn.gold{background:var(--gold);color:#fff;display:inline-flex;align-items:center;gap:7px;}
+  .btn.gold:hover{background:#d99a1d;}
+
+  .card{background:#fff;border-radius:14px;padding:28px;text-align:center;color:var(--muted);box-shadow:0 3px 12px rgba(20,40,90,.04);}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="logo">Obita</div>
+    <a class="nav-item" href="checkout.html" style="color:inherit"><span class="ico">◐</span><span>Dashboard</span><span class="chev"></span></a>
+    <div class="nav-item open"><span class="ico">▦</span><span>My Assets</span><span class="chev">⌄</span></div>
+    <div class="sub">
+      <a class="sub-item active" href="stablecoin-assets.html">Stablecoin Assets</a>
+      <a class="sub-item" href="fiat-assets.html">Fiat Assets</a>
+    </div>
+    <a class="nav-item" href="checkout.html" style="color:inherit"><span class="ico">$</span><span>Payout</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html" style="color:inherit"><span class="ico">¥</span><span>Collection</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html" style="color:inherit"><span class="ico">⬇</span><span>Approvals</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html" style="color:inherit"><span class="ico">▥</span><span>Report Center</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html" style="color:inherit"><span class="ico">▤</span><span>My Merchant</span><span class="chev">›</span></a>
+    <a class="nav-item" href="checkout.html" style="color:inherit"><span class="ico">⚡</span><span>Security Center</span><span class="chev">›</span></a>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="crumbs">My Assets <span class="sep">›</span> <b>Stablecoin Assets</b></div>
+      <div class="top-right">
+        <div class="company"><span class="av"></span> NancyTest Company Ltd.</div>
+        <div class="pill">🌐 EN</div>
+        <button class="reset-btn" onclick="resetDemo()">重置</button>
+        <div class="icon-btn">🔔<span class="dot"></span></div>
+        <div class="icon-btn" title="退出登录" onclick="logout()" style="cursor:pointer">👤</div>
+      </div>
+    </div>
+
+    <section class="banner">
+      <div class="bal-row">
+        <div class="bal"><div class="label">Available Assets</div><div class="val">$4.78</div></div>
+        <div class="bal"><div class="label">In Process</div><div class="val">$0.00</div></div>
+        <div class="bal"><div class="label warn">Temp. Locked</div><div class="val">$0.00</div></div>
+      </div>
+      <div class="updated">
+        Balances shown above include only funds securely custodied by Obita.<br>
+        Estimated in USD and last updated at 20 May 2026, 09:22
+      </div>
+    </section>
+
+    <div class="alert" id="alert">
+      <span>If you've just made a deposit, on-chain confirmation may take 3–5 minutes. Thank you for your patience.</span>
+      <span class="x" onclick="document.getElementById('alert').style.display='none'">✕</span>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="assets" onclick="switchTab('assets')">Assets</div>
+      <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
+    </div>
+
+    <div id="tab-assets">
+      <div class="asset">
+        <div class="coin usdt">₮</div>
+        <div class="ccy"><div class="nm">USDT</div><div class="rt">1USDT≈$0.9988</div></div>
+        <div class="amt"><div class="big">0.00</div><div class="sub">≈$0.00</div></div>
+        <div>
+          <button class="btn blue">Top Up</button>
+          <button class="btn gold">💸 New Payout</button>
+        </div>
+      </div>
+      <div class="asset">
+        <div class="coin usdc">$</div>
+        <div class="ccy"><div class="nm">USDC</div><div class="rt">1USDC≈$0.9988</div></div>
+        <div class="amt"><div class="big">0.00</div><div class="sub">≈$0.00</div></div>
+        <div>
+          <button class="btn blue">Top Up</button>
+          <button class="btn gold">💸 New Payout</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-history" style="display:none">
+      <div class="card">No records</div>
+    </div>
+  </main>
+
+<script>
+  function logout(){ sessionStorage.removeItem("obitaUser"); location.replace("login.html"); }
+  function resetDemo(){
+    ["obitaSchedule","obitaUsdBalance","obitaLastSettleDay"].forEach(k=>localStorage.removeItem(k));
+  }
+  function switchTab(t){
+    document.querySelectorAll(".tab").forEach(el=>el.classList.toggle("active",el.dataset.tab===t));
+    document.getElementById("tab-assets").style.display  = t==="assets" ?"block":"none";
+    document.getElementById("tab-history").style.display = t==="history"?"block":"none";
+  }
+</script>
+</body>
+</html>
