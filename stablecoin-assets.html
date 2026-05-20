@@ -73,6 +73,26 @@
   .btn.gold:hover{background:#d99a1d;}
 
   .card{background:#fff;border-radius:14px;padding:28px;text-align:center;color:var(--muted);box-shadow:0 3px 12px rgba(20,40,90,.04);}
+
+  .layout{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start;}
+  .addr-panel{background:#fff;border-radius:16px;padding:22px 22px;box-shadow:0 3px 12px rgba(20,40,90,.04);position:sticky;top:24px;}
+  .addr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .addr-head h3{font-size:16px;font-weight:800;}
+  .addr-head .add{background:var(--blue);color:#fff;border:none;font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;}
+  .addr-head .add:hover{background:#1f51d6;}
+  .addr-sub{color:var(--muted);font-size:12px;line-height:1.6;margin-bottom:16px;}
+  .addr-item{padding:13px 14px;border:1px solid var(--line);border-radius:11px;margin-bottom:10px;}
+  .addr-item .row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .addr-item .alias{font-size:13.5px;font-weight:700;}
+  .addr-item .chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;}
+  .chip.on{background:#e3f7ee;color:var(--green);}
+  .chip.off{background:#fdeced;color:#c14b56;}
+  .addr-item .net{display:inline-block;font-size:11px;font-weight:600;color:var(--blue);background:#eaf0ff;padding:2px 7px;border-radius:6px;margin-right:6px;}
+  .addr-item .hash{font-size:11.5px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;}
+  .addr-item .acts{display:flex;gap:10px;margin-top:8px;font-size:11.5px;}
+  .addr-item .acts a{color:var(--blue);text-decoration:none;font-weight:600;cursor:pointer;}
+  .addr-item .acts a.danger{color:#c14b56;}
+  .addr-item .acts a:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -104,9 +124,11 @@
       </div>
     </div>
 
+    <div class="layout">
+    <div class="left">
     <section class="banner">
       <div class="bal-row">
-        <div class="bal"><div class="label">Available Assets</div><div class="val">$4.78</div></div>
+        <div class="bal"><div class="label">Available Assets</div><div class="val">$199.76</div></div>
         <div class="bal"><div class="label">In Process</div><div class="val">$0.00</div></div>
         <div class="bal"><div class="label warn">Temp. Locked</div><div class="val">$0.00</div></div>
       </div>
@@ -130,19 +152,19 @@
       <div class="asset">
         <div class="coin usdt">₮</div>
         <div class="ccy"><div class="nm">USDT</div><div class="rt">1USDT≈$0.9988</div></div>
-        <div class="amt"><div class="big">0.00</div><div class="sub">≈$0.00</div></div>
+        <div class="amt"><div class="big">100.00</div><div class="sub">≈$99.88</div></div>
         <div>
-          <button class="btn blue">Top Up</button>
-          <button class="btn gold">💸 New Payout</button>
+          <button class="btn blue" onclick="pickAddress('topup')">Top Up</button>
+          <button class="btn gold" onclick="pickAddress('payout')">💸 New Payout</button>
         </div>
       </div>
       <div class="asset">
         <div class="coin usdc">$</div>
         <div class="ccy"><div class="nm">USDC</div><div class="rt">1USDC≈$0.9988</div></div>
-        <div class="amt"><div class="big">0.00</div><div class="sub">≈$0.00</div></div>
+        <div class="amt"><div class="big">100.00</div><div class="sub">≈$99.88</div></div>
         <div>
-          <button class="btn blue">Top Up</button>
-          <button class="btn gold">💸 New Payout</button>
+          <button class="btn blue" onclick="pickAddress('topup')">Top Up</button>
+          <button class="btn gold" onclick="pickAddress('payout')">💸 New Payout</button>
         </div>
       </div>
     </div>
@@ -150,6 +172,17 @@
     <div id="tab-history" style="display:none">
       <div class="card">No records</div>
     </div>
+    </div><!-- /.left -->
+
+    <aside class="addr-panel">
+      <div class="addr-head">
+        <h3>Address Book · 地址簿</h3>
+        <button class="add" onclick="alert('Add Address')">+ Add</button>
+      </div>
+      <div class="addr-sub">仅地址簿中状态为 <b style="color:var(--green)">Active</b> 的地址可用于 Stablecoin 资产的充值与提现。</div>
+      <div id="addrList"></div>
+    </aside>
+    </div><!-- /.layout -->
   </main>
 
 <script>
@@ -162,6 +195,47 @@
     document.getElementById("tab-assets").style.display  = t==="assets" ?"block":"none";
     document.getElementById("tab-history").style.display = t==="history"?"block":"none";
   }
+
+  let addresses=[
+    {alias:"Treasury · Tron",   net:"TRC20", hash:"TX9aB...wq2C", active:true},
+    {alias:"Hot Wallet · ETH",  net:"ERC20", hash:"0x8f3D...A91e", active:true},
+    {alias:"Ops · Polygon",     net:"Polygon", hash:"0x21cA...77fb", active:false},
+    {alias:"Partner · Arbitrum",net:"Arbitrum", hash:"0xD4e7...12B0", active:true},
+  ];
+
+  function renderAddrs(){
+    document.getElementById("addrList").innerHTML = addresses.map((a,i)=>`
+      <div class="addr-item">
+        <div class="row1">
+          <div class="alias">${a.alias}</div>
+          <span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>
+        </div>
+        <div><span class="net">${a.net}</span><span class="hash">${a.hash}</span></div>
+        <div class="acts">
+          <a onclick="toggleAddr(${i})">${a.active?'停用':'启用'}</a>
+          <a onclick="useAddr(${i},'topup')">Top Up</a>
+          <a onclick="useAddr(${i},'payout')">New Payout</a>
+          <a class="danger" onclick="removeAddr(${i})">删除</a>
+        </div>
+      </div>`).join("");
+  }
+  function toggleAddr(i){ addresses[i].active=!addresses[i].active; renderAddrs(); }
+  function removeAddr(i){ addresses.splice(i,1); renderAddrs(); }
+  function useAddr(i,action){
+    const a=addresses[i];
+    if(!a.active){ alert(`地址「${a.alias}」当前为 Inactive，无法${action==='topup'?'充值':'提现'}。请先启用。`); return; }
+    alert(`已选择「${a.alias}」(${a.net}) 进行${action==='topup'?'充值':'提现'}`);
+  }
+  function pickAddress(action){
+    const list=addresses.filter(a=>a.active);
+    if(list.length===0){ alert("没有可用地址。请先到地址簿添加或启用 Active 地址。"); return; }
+    const names=list.map((a,i)=>`${i+1}. ${a.alias} · ${a.net}`).join("\n");
+    const choice=prompt(`选择${action==='topup'?'充值':'提现'}使用的地址：\n${names}\n输入序号：`,"1");
+    if(!choice) return;
+    const idx=parseInt(choice)-1;
+    if(idx>=0 && idx<list.length) alert(`已选择「${list[idx].alias}」(${list[idx].net}) 进行${action==='topup'?'充值':'提现'}`);
+  }
+  renderAddrs();
 </script>
 </body>
 </html>
