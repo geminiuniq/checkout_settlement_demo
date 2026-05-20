@@ -89,10 +89,22 @@
   .chip.off{background:#fdeced;color:#c14b56;}
   .addr-item .net{display:inline-block;font-size:11px;font-weight:600;color:var(--blue);background:#eaf0ff;padding:2px 7px;border-radius:6px;margin-right:6px;}
   .addr-item .hash{font-size:11.5px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;}
-  .addr-item .acts{display:flex;gap:10px;margin-top:8px;font-size:11.5px;}
-  .addr-item .acts a{color:var(--blue);text-decoration:none;font-weight:600;cursor:pointer;}
-  .addr-item .acts a.danger{color:#c14b56;}
-  .addr-item .acts a:hover{text-decoration:underline;}
+  .addr-item{cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+  .addr-item:hover{border-color:var(--blue);box-shadow:0 4px 12px rgba(47,107,255,.10);}
+
+  /* Address detail modal */
+  .ov{position:fixed;inset:0;background:rgba(15,28,60,.45);display:none;align-items:center;justify-content:center;z-index:60;}
+  .ov.show{display:flex;}
+  .dlg{background:#fff;border-radius:14px;padding:24px 26px;width:440px;box-shadow:0 24px 60px rgba(0,0,0,.25);}
+  .dlg h3{font-size:17px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+  .dlg .close{cursor:pointer;color:var(--muted);font-size:18px;}
+  .kv{display:grid;grid-template-columns:90px 1fr;gap:8px 14px;font-size:13px;margin-bottom:18px;}
+  .kv .k{color:var(--muted);}
+  .kv .v{color:var(--ink);word-break:break-all;}
+  .dlg-acts{display:flex;gap:10px;justify-content:flex-end;}
+  .dlg-acts .btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;border:1px solid var(--line);background:#fff;cursor:pointer;}
+  .dlg-acts .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .dlg-acts .btn.danger{color:#c14b56;border-color:#f1c4c8;}
 </style>
 </head>
 <body>
@@ -185,6 +197,23 @@
     </div><!-- /.layout -->
   </main>
 
+  <div class="ov" id="addrOv" onclick="if(event.target===this)closeAddr()">
+    <div class="dlg">
+      <h3><span id="dlgTitle"></span><span class="close" onclick="closeAddr()">✕</span></h3>
+      <div class="kv">
+        <div class="k">Alias</div><div class="v" id="dlgAlias"></div>
+        <div class="k">Network</div><div class="v" id="dlgNet"></div>
+        <div class="k">Address</div><div class="v" id="dlgHash"></div>
+        <div class="k">Status</div><div class="v" id="dlgStatus"></div>
+      </div>
+      <div class="dlg-acts">
+        <button class="btn" onclick="dlgToggle()" id="dlgToggle">禁用</button>
+        <button class="btn primary" onclick="dlgEdit()">编辑</button>
+        <button class="btn danger" onclick="dlgDelete()">删除</button>
+      </div>
+    </div>
+  </div>
+
 <script>
   function logout(){ sessionStorage.removeItem("obitaUser"); location.replace("login.html"); }
   function resetDemo(){
@@ -205,26 +234,39 @@
 
   function renderAddrs(){
     document.getElementById("addrList").innerHTML = addresses.map((a,i)=>`
-      <div class="addr-item">
+      <div class="addr-item" onclick="openAddr(${i})">
         <div class="row1">
           <div class="alias">${a.alias}</div>
           <span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>
         </div>
         <div><span class="net">${a.net}</span><span class="hash">${a.hash}</span></div>
-        <div class="acts">
-          <a onclick="toggleAddr(${i})">${a.active?'停用':'启用'}</a>
-          <a onclick="useAddr(${i},'topup')">Top Up</a>
-          <a onclick="useAddr(${i},'payout')">New Payout</a>
-          <a class="danger" onclick="removeAddr(${i})">删除</a>
-        </div>
       </div>`).join("");
   }
-  function toggleAddr(i){ addresses[i].active=!addresses[i].active; renderAddrs(); }
-  function removeAddr(i){ addresses.splice(i,1); renderAddrs(); }
-  function useAddr(i,action){
-    const a=addresses[i];
-    if(!a.active){ alert(`地址「${a.alias}」当前为 Inactive，无法${action==='topup'?'充值':'提现'}。请先启用。`); return; }
-    alert(`已选择「${a.alias}」(${a.net}) 进行${action==='topup'?'充值':'提现'}`);
+
+  let detailIdx=-1;
+  function openAddr(i){
+    detailIdx=i; const a=addresses[i];
+    document.getElementById("dlgTitle").textContent=a.alias;
+    document.getElementById("dlgAlias").textContent=a.alias;
+    document.getElementById("dlgNet").textContent=a.net;
+    document.getElementById("dlgHash").textContent=a.hash;
+    document.getElementById("dlgStatus").innerHTML=
+      `<span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>`;
+    document.getElementById("dlgToggle").textContent=a.active?'禁用':'启用';
+    document.getElementById("addrOv").classList.add("show");
+  }
+  function closeAddr(){ document.getElementById("addrOv").classList.remove("show"); }
+  function dlgToggle(){ addresses[detailIdx].active=!addresses[detailIdx].active; renderAddrs(); openAddr(detailIdx); }
+  function dlgEdit(){
+    const a=addresses[detailIdx];
+    const v=prompt("编辑 Alias",a.alias); if(v===null) return;
+    const t=v.trim(); if(!t) return;
+    a.alias=t; renderAddrs(); openAddr(detailIdx);
+  }
+  function dlgDelete(){
+    const a=addresses[detailIdx];
+    if(!confirm(`确认删除「${a.alias}」？`)) return;
+    addresses.splice(detailIdx,1); closeAddr(); renderAddrs();
   }
   function pickAddress(action){
     const list=addresses.filter(a=>a.active);
