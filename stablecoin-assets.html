@@ -157,6 +157,42 @@
   .review-card .rk .k{color:var(--muted);}
   .confirm-chk{display:flex;gap:10px;align-items:flex-start;margin-top:6px;padding:12px 14px;background:#f3f7ff;border:1px solid #d9e3ff;border-radius:10px;font-size:13px;color:#3b4a63;cursor:pointer;line-height:1.5;}
   .confirm-chk input{margin-top:2px;accent-color:var(--blue);width:16px;height:16px;flex:0 0 16px;}
+  .wallet-row{display:flex;gap:10px;}
+  .wallet-row input{flex:1;}
+  .verify-btn{background:var(--gold);color:#fff;border:none;font-weight:700;font-size:13px;padding:0 18px;border-radius:9px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
+  .verify-btn:hover{background:#d99a1d;}
+  .verify-status{margin-top:7px;font-size:12.5px;color:var(--muted);}
+  .verify-status.ok{color:var(--green);font-weight:700;}
+
+  /* status chips on address card */
+  .chip.warn{background:#fff3da;color:#a07310;}
+  .chip-row{display:flex;gap:6px;}
+
+  /* Verify wallet modal */
+  .vov{position:fixed;inset:0;background:rgba(15,28,60,.55);display:none;align-items:center;justify-content:center;z-index:90;}
+  .vov.show{display:flex;}
+  .vdlg{background:#fff;border-radius:16px;padding:24px 26px;width:520px;box-shadow:0 24px 60px rgba(0,0,0,.30);}
+  .vdlg h3{font-size:18px;font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+  .vdlg h3 .close{cursor:pointer;color:var(--muted);font-size:18px;}
+  .vdlg .vsub{color:var(--muted);font-size:13px;margin-bottom:18px;}
+  .vmethod{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;margin-bottom:11px;transition:border-color .15s,box-shadow .15s;}
+  .vmethod:hover{border-color:var(--blue);box-shadow:0 6px 16px rgba(47,107,255,.08);}
+  .vmethod .mi{width:38px;height:38px;border-radius:10px;background:#eef3ff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 38px;}
+  .vmethod .mt{flex:1;}
+  .vmethod .mt .t{font-size:14.5px;font-weight:700;}
+  .vmethod .mt .d{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5;}
+  .vmethod .arrow{color:#b9c2d2;font-size:16px;}
+  .vpanel{padding:6px 0;}
+  .vpanel .hdr{font-size:14px;font-weight:700;margin-bottom:8px;}
+  .vpanel .info{background:#f3f7ff;border:1px solid #d9e3ff;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.7;color:#3b4a63;margin-bottom:14px;}
+  .vpanel .info b{color:var(--ink);}
+  .vpanel .wallet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .vpanel .wallet-grid .w{border:1.5px solid var(--line);border-radius:10px;padding:14px 8px;text-align:center;cursor:pointer;font-size:12.5px;font-weight:700;}
+  .vpanel .wallet-grid .w:hover{border-color:var(--blue);}
+  .vpanel .wallet-grid .w .e{font-size:22px;display:block;margin-bottom:6px;}
+  .vactions{display:flex;justify-content:space-between;margin-top:14px;gap:10px;}
+  .vactions .btn{padding:10px 20px;border-radius:9px;font-size:13px;font-weight:700;border:1px solid var(--line);background:#fff;cursor:pointer;}
+  .vactions .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
 </style>
 </head>
 <body>
@@ -260,7 +296,7 @@
     <!-- Stepper (hidden on picker) -->
     <div class="stepper" id="stepper" style="display:none">
       <span class="s" id="stp1">1.Company Information</span><span class="arr">▸</span>
-      <span class="s" id="stp2">2.Add Receiving Account</span><span class="arr">▸</span>
+      <span class="s" id="stp2">2.Wallet Address</span><span class="arr">▸</span>
       <span class="s" id="stp3">3.Review & Confirm</span>
     </div>
 
@@ -323,7 +359,11 @@
             <option>Tron Network</option>
           </select></div>
         <div class="fld"><label>Wallet Address<span class="req">*</span></label>
-          <input id="f_addr" placeholder="Enter wallet address"></div>
+          <div class="wallet-row">
+            <input id="f_addr" placeholder="Enter wallet address">
+            <button type="button" class="verify-btn" onclick="openVerify()">🛡 验证钱包</button>
+          </div>
+          <div class="verify-status" id="verifyStatus">状态：未验证</div></div>
         <div class="fld"><label>Memo / Tag (optional)</label>
           <input id="f_memo" placeholder="If required by the network"></div>
         <label class="confirm-chk"><input type="checkbox" id="f_owned">
@@ -338,7 +378,7 @@
           <div class="rk" id="r_company"></div>
         </div>
         <div class="review-card">
-          <h5>Receiving Account <span class="edit" onclick="goStep(2)">Edit</span></h5>
+          <h5>Wallet Address <span class="edit" onclick="goStep(2)">Edit</span></h5>
           <div class="rk" id="r_account"></div>
         </div>
       </div>
@@ -347,6 +387,35 @@
     <div class="df" id="drawerFooter">
       <button class="btn" id="btnBack" onclick="drawerBack()">Cancel</button>
       <button class="btn primary" id="btnNext" onclick="drawerNext()" style="display:none">Save &amp; Continue</button>
+    </div>
+  </div>
+
+  <!-- Verify Wallet modal -->
+  <div class="vov" id="verifyOv" onclick="if(event.target===this)closeVerify()">
+    <div class="vdlg">
+      <h3><span id="vTitle">Verify Wallet · 选择钱包类型</span><span class="close" onclick="closeVerify()">✕</span></h3>
+      <div class="vsub" id="vSub">请选择该钱包的类型，以便提供合适的验证方式。</div>
+
+      <div id="vStep1">
+        <div class="vmethod" onclick="vPickType('private')">
+          <div class="mi">👛</div>
+          <div class="mt"><div class="t">Private Wallet</div><div class="d">MetaMask, TrustWallet, etc.</div></div>
+          <div class="arrow">›</div>
+        </div>
+        <div class="vmethod" onclick="vPickType('exchange')">
+          <div class="mi" style="background:#fff3da;color:#a07310">🏦</div>
+          <div class="mt"><div class="t">Exchange / Custodial</div><div class="d">Binance, OKX, Coinbase, etc.</div></div>
+          <div class="arrow">›</div>
+        </div>
+      </div>
+
+      <div id="vStep2" style="display:none"></div>
+      <div id="vStep3" style="display:none"></div>
+
+      <div class="vactions">
+        <button class="btn" id="vBackBtn" onclick="vBack()">Cancel</button>
+        <button class="btn primary" id="vDoneBtn" onclick="vComplete()" style="display:none">标记为已验证</button>
+      </div>
     </div>
   </div>
 
@@ -379,10 +448,10 @@
   }
 
   let addresses=[
-    {alias:"Treasury · Tron",   net:"TRC20", hash:"TX9aB...wq2C", active:true},
-    {alias:"Hot Wallet · ETH",  net:"ERC20", hash:"0x8f3D...A91e", active:true},
-    {alias:"Ops · Polygon",     net:"Polygon", hash:"0x21cA...77fb", active:false},
-    {alias:"Partner · Arbitrum",net:"Arbitrum", hash:"0xD4e7...12B0", active:true},
+    {alias:"Treasury · Tron",   net:"Tron Network", hash:"TX9aB...wq2C", active:true,  verified:true},
+    {alias:"Hot Wallet · ETH",  net:"Ethereum",     hash:"0x8f3D...A91e", active:true,  verified:true},
+    {alias:"Ops · Polygon",     net:"Ethereum",     hash:"0x21cA...77fb", active:false, verified:true},
+    {alias:"Partner · Arbitrum",net:"Ethereum",     hash:"0xD4e7...12B0", active:true,  verified:false},
   ];
 
   function renderAddrs(){
@@ -390,7 +459,10 @@
       <div class="addr-item" onclick="openAddr(${i})">
         <div class="row1">
           <div class="alias">${a.alias}</div>
-          <span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>
+          <div class="chip-row">
+            ${a.verified?'':'<span class="chip warn">未验证</span>'}
+            <span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>
+          </div>
         </div>
         <div><span class="net">${a.net}</span><span class="hash">${a.hash}</span></div>
       </div>`).join("");
@@ -404,7 +476,8 @@
     document.getElementById("dlgNet").textContent=a.net;
     document.getElementById("dlgHash").textContent=a.hash;
     document.getElementById("dlgStatus").innerHTML=
-      `<span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>`;
+      `<span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>
+       <span class="chip ${a.verified?'on':'warn'}" style="margin-left:6px">${a.verified?'已验证':'未验证'}</span>`;
     document.getElementById("dlgToggle").textContent=a.active?'禁用':'启用';
     document.getElementById("addrOv").classList.add("show");
   }
@@ -435,7 +508,7 @@
   let drawerType=null, drawerStep=0; // 0=picker, 1/2/3=steps
 
   function openAddDrawer(){
-    drawerType=null; goStep(0);
+    drawerType=null; goStep(0); resetVerifyForm();
     document.getElementById("addDrawerOv").classList.add("show");
     document.getElementById("addDrawer").classList.add("show");
   }
@@ -494,6 +567,7 @@
         alias:v("f_alias"), net:v("f_net"),
         hash:hash.length>16?hash.slice(0,6)+"..."+hash.slice(-4):hash,
         active:true, type:"Company",
+        verified:formVerified, verifyMethod:formVerifyMethod,
         company:{name:v("f_cname"),nick:v("f_cnick"),email:v("f_cmail"),
                  country:v("f_country"),dial:v("f_dial"),phone:v("f_phone"),address:v("f_caddr")},
         account:{memo:v("f_memo"),fullAddr:hash}
@@ -501,6 +575,114 @@
       renderAddrs(); closeAddDrawer();
     }
   }
+  // Verification state
+  let vType=null, vMethod=null, vStep=1, formVerified=false, formVerifyMethod="";
+
+  function resetVerifyForm(){
+    formVerified=false; formVerifyMethod="";
+    const el=document.getElementById("verifyStatus");
+    if(el){ el.className="verify-status"; el.textContent="状态：未验证"; }
+  }
+
+  function openVerify(){
+    vType=null; vMethod=null; vStep=1;
+    renderVerify();
+    document.getElementById("verifyOv").classList.add("show");
+  }
+  function closeVerify(){ document.getElementById("verifyOv").classList.remove("show"); }
+
+  function vPickType(t){ vType=t; vStep=2; renderVerify(); }
+  function vPickMethod(m){ vMethod=m; vStep=3; renderVerify(); }
+  function vBack(){
+    if(vStep===1) return closeVerify();
+    vStep--; renderVerify();
+  }
+
+  function renderVerify(){
+    const s1=document.getElementById("vStep1"), s2=document.getElementById("vStep2"), s3=document.getElementById("vStep3");
+    s1.style.display=vStep===1?"block":"none";
+    s2.style.display=vStep===2?"block":"none";
+    s3.style.display=vStep===3?"block":"none";
+    document.getElementById("vBackBtn").textContent = vStep===1?"Cancel":"Back";
+    document.getElementById("vDoneBtn").style.display = vStep===3?"inline-block":"none";
+
+    document.getElementById("vTitle").textContent =
+      vStep===1?"Verify Wallet · 选择钱包类型":
+      vStep===2?"Verify Wallet · 选择验证方式":
+                "Verify Wallet · 完成验证";
+    document.getElementById("vSub").textContent =
+      vStep===1?"请选择该钱包的类型，以便提供合适的验证方式。":
+      vStep===2?(vType==="private"?"Private Wallet 支持以下验证方式：":"Exchange / Custodial 支持以下验证方式："):
+                "按下方说明完成验证后，点击「标记为已验证」。";
+
+    if(vStep===2){
+      let html="";
+      if(vType==="private"){
+        html+=`
+          <div class="vmethod" onclick="vPickMethod('sign')">
+            <div class="mi">✍️</div>
+            <div class="mt"><div class="t">钱包验签</div><div class="d">MetaMask · TronLink · WalletConnect，唤起钱包插件或手机 App 完成验签</div></div>
+            <div class="arrow">›</div>
+          </div>
+          <div class="vmethod" onclick="vPickMethod('micro')">
+            <div class="mi" style="background:#e3f7ee;color:var(--green)">💸</div>
+            <div class="mt"><div class="t">小额打款</div><div class="d">使用待验证钱包向商户的 Obita 钱包地址打款指定金额</div></div>
+            <div class="arrow">›</div>
+          </div>`;
+      } else {
+        html+=`
+          <div class="vmethod" onclick="vPickMethod('micro')">
+            <div class="mi" style="background:#e3f7ee;color:var(--green)">💸</div>
+            <div class="mt"><div class="t">小额打款</div><div class="d">使用待验证钱包向商户的 Obita 钱包地址打款指定金额</div></div>
+            <div class="arrow">›</div>
+          </div>
+          <div class="vmethod" onclick="vPickMethod('doc')">
+            <div class="mi" style="background:#fff3da;color:#a07310">📎</div>
+            <div class="mt"><div class="t">上传证明文件</div><div class="d">上传可证明你对该待验证钱包拥有完整控制权的文件（如交易所账户截图、KYC 证明等）</div></div>
+            <div class="arrow">›</div>
+          </div>`;
+      }
+      s2.innerHTML=html;
+    }
+    if(vStep===3){
+      let html=`<div class="vpanel">`;
+      if(vMethod==="sign"){
+        html+=`<div class="hdr">钱包验签</div>
+          <div class="info">点击下方任一钱包，将唤起对应的插件或手机 App 进行签名验证。签名通过后即视为该地址归你所有。</div>
+          <div class="wallet-grid">
+            <div class="w" onclick="vSimulate('MetaMask')"><span class="e">🦊</span>MetaMask</div>
+            <div class="w" onclick="vSimulate('TronLink')"><span class="e">▦</span>TronLink</div>
+            <div class="w" onclick="vSimulate('WalletConnect')"><span class="e">◈</span>WalletConnect</div>
+          </div>`;
+      } else if(vMethod==="micro"){
+        const amt=(0.1+Math.random()*0.5).toFixed(2);
+        html+=`<div class="hdr">小额打款</div>
+          <div class="info">
+            请在 24 小时内，使用待验证钱包向以下 Obita 地址打款 <b>USDT ${amt}</b>：<br>
+            <b style="font-family:ui-monospace,Menlo,monospace">TQ4w...obitaMERCHANT...9aZ</b><br>
+            到账后系统将自动核对金额并完成验证。
+          </div>
+          <button class="btn primary" onclick="vSimulate('小额打款')">我已完成打款 / 模拟到账</button>`;
+      } else if(vMethod==="doc"){
+        html+=`<div class="hdr">上传控制权证明文件</div>
+          <div class="info">请上传能够证明你对该待验证钱包拥有完整控制权的证明文件（PDF / 图片，单文件 ≤ 10MB）。</div>
+          <input type="file" style="font-size:13px"><br><br>
+          <button class="btn primary" onclick="vSimulate('上传证明文件')">提交并完成验证</button>`;
+      }
+      html+=`</div>`;
+      s3.innerHTML=html;
+    }
+  }
+
+  function vSimulate(method){
+    formVerified=true; formVerifyMethod=method;
+    const el=document.getElementById("verifyStatus");
+    el.className="verify-status ok";
+    el.textContent="✓ 状态：已验证（"+method+"）";
+    closeVerify();
+  }
+  function vComplete(){ vSimulate(vMethod==="sign"?"钱包验签":vMethod==="micro"?"小额打款":"上传证明文件"); }
+
   function fillReview(){
     document.getElementById("r_company").innerHTML=`
       <div class="k">Company Name</div><div>${v("f_cname")||"-"}</div>
@@ -513,7 +695,8 @@
       <div class="k">Alias</div><div>${v("f_alias")||"-"}</div>
       <div class="k">Network</div><div>${v("f_net")||"-"}</div>
       <div class="k">Wallet Address</div><div style="word-break:break-all">${v("f_addr")||"-"}</div>
-      <div class="k">Memo</div><div>${v("f_memo")||"-"}</div>`;
+      <div class="k">Memo</div><div>${v("f_memo")||"-"}</div>
+      <div class="k">Verification</div><div>${formVerified?'<b style="color:var(--green)">已验证</b> · '+formVerifyMethod:'<b style="color:#a07310">未验证</b>'}</div>`;
   }
 </script>
 </body>
