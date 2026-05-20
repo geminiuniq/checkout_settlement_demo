@@ -95,7 +95,13 @@
   /* Address detail modal */
   .ov{position:fixed;inset:0;background:rgba(15,28,60,.45);display:none;align-items:center;justify-content:center;z-index:60;}
   .ov.show{display:flex;}
-  .dlg{background:#fff;border-radius:14px;padding:24px 26px;width:440px;box-shadow:0 24px 60px rgba(0,0,0,.25);}
+  .dlg{background:#fff;border-radius:14px;padding:24px 26px;width:560px;max-height:88vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.25);}
+  .dlg .sec{margin-bottom:18px;}
+  .dlg .sec-h{font-size:13.5px;font-weight:800;color:#3b4a63;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+  .dlg .grid-kv{display:grid;grid-template-columns:130px 1fr;gap:9px 14px;font-size:13px;}
+  .dlg .grid-kv .k{color:var(--muted);}
+  .dlg .grid-kv .v{color:var(--ink);word-break:break-all;}
+  .dlg .chips-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
   .dlg h3{font-size:17px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
   .dlg .close{cursor:pointer;color:var(--muted);font-size:18px;}
   .kv{display:grid;grid-template-columns:90px 1fr;gap:8px 14px;font-size:13px;margin-bottom:18px;}
@@ -429,12 +435,7 @@
   <div class="ov" id="addrOv" onclick="if(event.target===this)closeAddr()">
     <div class="dlg">
       <h3><span id="dlgTitle"></span><span class="close" onclick="closeAddr()">✕</span></h3>
-      <div class="kv">
-        <div class="k">Alias</div><div class="v" id="dlgAlias"></div>
-        <div class="k">Network</div><div class="v" id="dlgNet"></div>
-        <div class="k">Address</div><div class="v" id="dlgHash"></div>
-        <div class="k">Status</div><div class="v" id="dlgStatus"></div>
-      </div>
+      <div id="dlgBody"></div>
       <div class="dlg-acts">
         <button class="btn" id="dlgVerify" onclick="dlgVerifyAddr()" style="display:none">🛡 验证钱包</button>
         <button class="btn primary" onclick="dlgEdit()">编辑</button>
@@ -479,19 +480,65 @@
   function openAddr(i){
     detailIdx=i; const a=addresses[i];
     document.getElementById("dlgTitle").textContent=a.alias;
-    document.getElementById("dlgAlias").textContent=a.alias;
-    document.getElementById("dlgNet").textContent=a.net;
-    document.getElementById("dlgHash").textContent=a.hash;
+
     const state = a.verified?"verified":(a.pending?"pending":"unverified");
+    const stateLabel = state==="verified"?'✓ 已验证':state==="pending"?'⏳ 等待审核':'未验证';
     const chips=[];
     chips.push(`<span class="chip ${a.active?'on':'off'}">${a.active?'Active':'Inactive'}</span>`);
-    chips.push(`<span class="vchip state-${state}">${state==="verified"?'✓ 已验证':state==="pending"?'⏳ 等待审核':'未验证'}</span>`);
-    if(a.verifyType)   chips.push(`<span class="vchip type">${TYPE_LABEL[a.verifyType]||a.verifyType}</span>`);
-    if(a.verifyMethod) chips.push(`<span class="vchip method">${METHOD_LABEL[a.verifyMethod]||a.verifyMethod}</span>`);
-    if(a.verifyAmount) chips.push(`<span class="vchip">金额：USDT ${a.verifyAmount}</span>`);
-    if(a.verifyFile)   chips.push(`<span class="vchip file">📎 ${a.verifyFile}</span>`);
+    chips.push(`<span class="vchip state-${state}">${stateLabel}</span>`);
+    if(a.type)         chips.push(`<span class="vchip">${a.type}</span>`);
     if(state==="pending") chips.push(`<button class="vchip-link" onclick="approvePending(${i})">模拟审核通过</button>`);
-    document.getElementById("dlgStatus").innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${chips.join("")}</div>`;
+
+    const c=a.company||{};
+    const acc=a.account||{};
+    const fullAddr = acc.fullAddr || a.hash || "-";
+
+    const sections=[];
+
+    sections.push(`<div class="sec">
+      <div class="sec-h">Status</div>
+      <div class="chips-row">${chips.join("")}</div>
+    </div>`);
+
+    sections.push(`<div class="sec">
+      <div class="sec-h">Wallet Address</div>
+      <div class="grid-kv">
+        <div class="k">Alias</div><div class="v">${a.alias||"-"}</div>
+        <div class="k">Network</div><div class="v">${a.net||"-"}</div>
+        <div class="k">Wallet Address</div><div class="v">${fullAddr}</div>
+        <div class="k">Memo / Tag</div><div class="v">${acc.memo||"-"}</div>
+      </div>
+    </div>`);
+
+    if(a.type==="Company" && (c.name||c.country||c.address)){
+      sections.push(`<div class="sec">
+        <div class="sec-h">Company Information</div>
+        <div class="grid-kv">
+          <div class="k">Company Name</div><div class="v">${c.name||"-"}</div>
+          <div class="k">Nick Name</div><div class="v">${c.nick||"-"}</div>
+          <div class="k">Contact Email</div><div class="v">${c.email||"-"}</div>
+          <div class="k">Country</div><div class="v">${c.country||"-"}</div>
+          <div class="k">Phone</div><div class="v">${c.phone?((c.dial||"")+" "+c.phone):"-"}</div>
+          <div class="k">Company Address</div><div class="v">${c.address||"-"}</div>
+        </div>
+      </div>`);
+    }
+
+    const hasVerifyInfo = a.verifyType||a.verifyMethod||a.verifyAmount||a.verifyFile;
+    if(hasVerifyInfo || state!=="unverified"){
+      sections.push(`<div class="sec">
+        <div class="sec-h">Verification</div>
+        <div class="grid-kv">
+          <div class="k">Wallet Type</div><div class="v">${a.verifyType?(TYPE_LABEL[a.verifyType]||a.verifyType):"-"}</div>
+          <div class="k">Verify Method</div><div class="v">${a.verifyMethod?(METHOD_LABEL[a.verifyMethod]||a.verifyMethod):"-"}</div>
+          ${a.verifyAmount?`<div class="k">Micro Amount</div><div class="v">USDT ${a.verifyAmount}</div>`:""}
+          ${a.verifyFile?`<div class="k">Uploaded File</div><div class="v">📎 ${a.verifyFile}</div>`:""}
+          <div class="k">Status</div><div class="v">${stateLabel}</div>
+        </div>
+      </div>`);
+    }
+
+    document.getElementById("dlgBody").innerHTML = sections.join("");
     document.getElementById("dlgVerify").style.display = a.verified?"none":"inline-block";
     document.getElementById("addrOv").classList.add("show");
   }
