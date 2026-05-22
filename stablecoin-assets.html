@@ -138,11 +138,11 @@
   .drawer .df .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);margin-left:10px;}
   .drawer .df .btn.primary:hover{background:#1f51d6;}
 
-  /* Stepper */
-  .stepper{display:flex;align-items:center;gap:8px;padding:0 32px 18px;font-size:13px;color:var(--muted);flex-wrap:wrap;border-bottom:1px solid var(--line);}
-  .stepper .s{font-weight:600;}
-  .stepper .s.active{color:var(--ink);}
-  .stepper .arr{color:#c7cdd9;}
+  /* Drawer note */
+  .drawer-note{display:flex;align-items:flex-start;gap:9px;margin:0 32px 14px;padding:11px 14px;
+    background:#eef3ff;border:1px solid #d9e3ff;border-radius:10px;font-size:12.5px;color:#3b4a63;line-height:1.6;}
+  .drawer-note .ni{flex:0 0 auto;font-size:14px;}
+  .drawer-note b{color:var(--ink);}
 
   /* Form */
   .form-title{font-size:18px;font-weight:800;margin:18px 0 16px;}
@@ -308,9 +308,9 @@
     </div>
 
     <!-- Stepper (hidden on picker) -->
-    <div class="stepper" id="stepper" style="display:none">
-      <span class="s" id="stp1">1.Wallet Address</span><span class="arr">▸</span>
-      <span class="s" id="stp2">2.Review &amp; Confirm</span>
+    <div class="drawer-note" id="stepper" style="display:none">
+      <span class="ni">🛡</span>
+      <span>为保障你的资金安全，这里<b>仅支持添加商户本人拥有并可控制的钱包地址</b>。</span>
     </div>
 
     <div class="db">
@@ -549,8 +549,6 @@
     document.getElementById("pane2").style.display = n===1?"block":"none";
     document.getElementById("pane3").style.display = n===2?"block":"none";
     document.getElementById("stepper").style.display = "flex";
-    document.getElementById("stp1").classList.toggle("active",n===1);
-    document.getElementById("stp2").classList.toggle("active",n===2);
     document.getElementById("btnBack").textContent = n<=1?"Cancel":"Back";
     document.getElementById("btnNext").style.display = "inline-block";
     document.getElementById("btnNext").textContent = n===2?"Confirm":"Save & Continue";
