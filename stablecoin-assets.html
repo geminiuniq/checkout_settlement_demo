@@ -309,103 +309,14 @@
 
     <!-- Stepper (hidden on picker) -->
     <div class="stepper" id="stepper" style="display:none">
-      <span class="s" id="stp1">1.Party Information</span><span class="arr">▸</span>
-      <span class="s" id="stp2">2.Wallet Address</span><span class="arr">▸</span>
-      <span class="s" id="stp3">3.Review & Confirm</span>
+      <span class="s" id="stp1">1.Wallet Address</span><span class="arr">▸</span>
+      <span class="s" id="stp2">2.Review &amp; Confirm</span>
     </div>
 
     <div class="db">
-      <!-- Picker -->
-      <div id="panePick">
-        <h4>The address belongs to</h4>
-        <div class="pick" onclick="pickAddrType('Company')">
-          <div class="pi c">🏢</div>
-          <div class="pt"><div class="t">Company</div><div class="d">If the address belongs to a company</div></div>
-          <div class="arrow">›</div>
-        </div>
-        <div class="pick" onclick="pickAddrType('Individual')">
-          <div class="pi i">👤</div>
-          <div class="pt"><div class="t">Individual</div><div class="d">If the address belongs to an individual</div></div>
-          <div class="arrow">›</div>
-        </div>
-      </div>
-
-      <!-- Step 1 · Party Information -->
-      <div id="pane1" style="display:none">
-        <!-- 1A · Company -->
-        <div id="pane1c">
-          <div class="form-title">Company Information</div>
-          <div class="fld"><label>Company Name<span class="req">*</span></label>
-            <input id="f_cname" placeholder="Enter company name"></div>
-          <div class="grid2">
-            <div class="fld"><label>Company Nick name</label>
-              <input id="f_cnick" placeholder="Enter nick name"></div>
-            <div class="fld"><label>Contact Email</label>
-              <input id="f_cmail" placeholder="Enter contact email"></div>
-          </div>
-          <div class="grid2">
-            <div class="fld"><label>Country<span class="req">*</span></label>
-              <select id="f_country">
-                <option value="">Select Country/Region</option>
-                <option>Singapore</option><option>Hong Kong</option><option>United States</option>
-                <option>United Kingdom</option><option>Japan</option><option>Germany</option>
-                <option>China</option><option>Indonesia</option><option>Australia</option>
-              </select></div>
-            <div class="fld"><label>Phone Number</label>
-              <div class="phone">
-                <select id="f_dial">
-                  <option value="+62">+62</option><option value="+1">+1</option><option value="+44">+44</option>
-                  <option value="+65">+65</option><option value="+852">+852</option><option value="+86">+86</option>
-                  <option value="+81">+81</option><option value="+49">+49</option>
-                </select>
-                <input id="f_phone" placeholder="Enter phone number">
-              </div></div>
-          </div>
-          <div class="fld"><label>Company Address<span class="req">*</span></label>
-            <input id="f_caddr" placeholder="Enter company address"></div>
-        </div>
-
-        <!-- 1B · Individual -->
-        <div id="pane1i" style="display:none">
-          <div class="form-title">Individual Information</div>
-          <div class="fld"><label>Name<span class="req">*</span></label>
-            <div class="grid3">
-              <input id="f_ifirst" placeholder="First name">
-              <input id="f_imid"   placeholder="Middle name (optional)">
-              <input id="f_ilast"  placeholder="Last name">
-            </div>
-          </div>
-          <div class="grid2">
-            <div class="fld"><label>Email</label>
-              <input id="f_iemail" placeholder="Enter contact email"></div>
-            <div class="fld"><label>Nick Name</label>
-              <input id="f_inick" placeholder="Enter nick name"></div>
-          </div>
-          <div class="grid2">
-            <div class="fld"><label>Country<span class="req">*</span></label>
-              <select id="f_icountry">
-                <option value="">Select Country/Region</option>
-                <option>Singapore</option><option>Hong Kong</option><option>United States</option>
-                <option>United Kingdom</option><option>Japan</option><option>Germany</option>
-                <option>China</option><option>Indonesia</option><option>Australia</option>
-              </select></div>
-            <div class="fld"><label>Phone Number</label>
-              <div class="phone">
-                <select id="f_idial">
-                  <option value="+62">+62</option><option value="+1">+1</option><option value="+44">+44</option>
-                  <option value="+65">+65</option><option value="+852">+852</option><option value="+86">+86</option>
-                  <option value="+81">+81</option><option value="+49">+49</option>
-                </select>
-                <input id="f_iphone" placeholder="Enter phone number">
-              </div></div>
-          </div>
-          <div class="fld"><label>Address</label>
-            <input id="f_iaddr" placeholder="Enter address"></div>
-        </div>
-      </div>
-
-      <!-- Step 2 -->
+      <!-- Step 1 · Wallet Address -->
       <div id="pane2" style="display:none">
+        <div class="form-title">Wallet Address</div>
         <div class="fld"><label>Address Alias<span class="req">*</span></label>
           <input id="f_alias" placeholder="e.g. Treasury · Tron"></div>
         <div class="fld"><label>Network<span class="req">*</span></label>
@@ -425,15 +336,11 @@
           <span>I hereby confirm that this wallet is owned and controlled by this merchant.</span></label>
       </div>
 
-      <!-- Step 3 · Review -->
+      <!-- Step 2 · Review -->
       <div id="pane3" style="display:none">
-        <div class="form-title">Review & Confirm</div>
+        <div class="form-title">Review &amp; Confirm</div>
         <div class="review-card">
-          <h5><span id="r_partyTitle">Party Information</span> <span class="edit" onclick="goStep(1)">Edit</span></h5>
-          <div class="rk" id="r_company"></div>
-        </div>
-        <div class="review-card">
-          <h5>Wallet Address <span class="edit" onclick="goStep(2)">Edit</span></h5>
+          <h5>Wallet Address <span class="edit" onclick="goStep(1)">Edit</span></h5>
           <div class="rk" id="r_account"></div>
         </div>
       </div>
@@ -624,10 +531,12 @@
   }
   renderAddrs();
 
-  let drawerType=null, drawerStep=0; // 0=picker, 1/2/3=steps
+  let drawerStep=1; // 1=Wallet Address, 2=Review & Confirm
 
   function openAddDrawer(){
-    drawerType=null; goStep(0); resetVerifyForm();
+    ["f_alias","f_addr","f_memo"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("f_owned").checked=false;
+    resetVerifyForm(); goStep(1);
     document.getElementById("addDrawerOv").classList.add("show");
     document.getElementById("addDrawer").classList.add("show");
   }
@@ -635,26 +544,17 @@
     document.getElementById("addDrawerOv").classList.remove("show");
     document.getElementById("addDrawer").classList.remove("show");
   }
-  function pickAddrType(type){ drawerType=type; goStep(1); }
   function goStep(n){
     drawerStep=n;
-    document.getElementById("panePick").style.display = n===0?"block":"none";
-    document.getElementById("pane1").style.display    = n===1?"block":"none";
-    document.getElementById("pane2").style.display    = n===2?"block":"none";
-    document.getElementById("pane3").style.display    = n===3?"block":"none";
-    document.getElementById("stepper").style.display  = n===0?"none":"flex";
-    ["stp1","stp2","stp3"].forEach((id,i)=>{
-      document.getElementById(id).classList.toggle("active",i+1===n);
-    });
-    // Step 1 sub-pane + stepper label based on drawerType
-    document.getElementById("pane1c").style.display = (n===1 && drawerType==="Company")   ?"block":"none";
-    document.getElementById("pane1i").style.display = (n===1 && drawerType==="Individual")?"block":"none";
-    document.getElementById("stp1").textContent =
-      drawerType==="Individual" ? "1.Individual Information" : "1.Company Information";
+    document.getElementById("pane2").style.display = n===1?"block":"none";
+    document.getElementById("pane3").style.display = n===2?"block":"none";
+    document.getElementById("stepper").style.display = "flex";
+    document.getElementById("stp1").classList.toggle("active",n===1);
+    document.getElementById("stp2").classList.toggle("active",n===2);
     document.getElementById("btnBack").textContent = n<=1?"Cancel":"Back";
-    document.getElementById("btnNext").style.display = n===0?"none":"inline-block";
-    document.getElementById("btnNext").textContent = n===3?"Confirm":"Save & Continue";
-    if(n===3) fillReview();
+    document.getElementById("btnNext").style.display = "inline-block";
+    document.getElementById("btnNext").textContent = n===2?"Confirm":"Save & Continue";
+    if(n===2) fillReview();
   }
   function drawerBack(){
     if(drawerStep<=1) closeAddDrawer();
@@ -663,42 +563,23 @@
   function v(id){ return document.getElementById(id).value.trim(); }
   function drawerNext(){
     if(drawerStep===1){
-      if(drawerType==="Company"){
-        if(!v("f_cname")){ alert("请填写 Company Name"); return; }
-        if(!v("f_country")){ alert("请选择 Country"); return; }
-        if(!v("f_caddr")){ alert("请填写 Company Address"); return; }
-      } else {
-        if(!v("f_ifirst")||!v("f_ilast")){ alert("请填写 First name 和 Last name"); return; }
-        if(!v("f_icountry")){ alert("请选择 Country"); return; }
-      }
-      goStep(2);
-    } else if(drawerStep===2){
       if(!v("f_alias")){ alert("请填写 Address Alias"); return; }
       if(!v("f_addr")){ alert("请填写 Wallet Address"); return; }
       if(!document.getElementById("f_owned").checked){
         alert("请勾选 “I hereby confirm that this wallet is owned and controlled by this merchant.”"); return;
       }
-      goStep(3);
-    } else if(drawerStep===3){
+      goStep(2);
+    } else if(drawerStep===2){
       const hash=v("f_addr");
-      const rec={
+      addresses.unshift({
         alias:v("f_alias"), net:v("f_net"),
         hash:hash.length>16?hash.slice(0,6)+"..."+hash.slice(-4):hash,
-        active:true, type:drawerType,
+        active:true,
         verified:formV.state==="verified",
         pending:formV.state==="pending",
         verifyType:formV.type, verifyMethod:formV.method, verifyFile:formV.file, verifyAmount:formV.amount,
         account:{memo:v("f_memo"),fullAddr:hash}
-      };
-      if(drawerType==="Company"){
-        rec.company={name:v("f_cname"),nick:v("f_cnick"),email:v("f_cmail"),
-                     country:v("f_country"),dial:v("f_dial"),phone:v("f_phone"),address:v("f_caddr")};
-      } else {
-        rec.individual={firstName:v("f_ifirst"),middleName:v("f_imid"),lastName:v("f_ilast"),
-                        email:v("f_iemail"),nick:v("f_inick"),country:v("f_icountry"),
-                        dial:v("f_idial"),phone:v("f_iphone"),address:v("f_iaddr")};
-      }
-      addresses.unshift(rec);
+      });
       renderAddrs(); closeAddDrawer();
     }
   }
@@ -876,26 +757,6 @@
   }
 
   function fillReview(){
-    if(drawerType==="Company"){
-      document.getElementById("r_partyTitle").textContent="Company Information";
-      document.getElementById("r_company").innerHTML=`
-        <div class="k">Company Name</div><div>${v("f_cname")||"-"}</div>
-        <div class="k">Nick name</div><div>${v("f_cnick")||"-"}</div>
-        <div class="k">Contact Email</div><div>${v("f_cmail")||"-"}</div>
-        <div class="k">Country</div><div>${v("f_country")||"-"}</div>
-        <div class="k">Phone</div><div>${v("f_phone")?v("f_dial")+" "+v("f_phone"):"-"}</div>
-        <div class="k">Address</div><div>${v("f_caddr")||"-"}</div>`;
-    } else {
-      document.getElementById("r_partyTitle").textContent="Individual Information";
-      const full=[v("f_ifirst"),v("f_imid"),v("f_ilast")].filter(Boolean).join(" ")||"-";
-      document.getElementById("r_company").innerHTML=`
-        <div class="k">Name</div><div>${full}</div>
-        <div class="k">Email</div><div>${v("f_iemail")||"-"}</div>
-        <div class="k">Nick Name</div><div>${v("f_inick")||"-"}</div>
-        <div class="k">Country</div><div>${v("f_icountry")||"-"}</div>
-        <div class="k">Phone</div><div>${v("f_iphone")?v("f_idial")+" "+v("f_iphone"):"-"}</div>
-        <div class="k">Address</div><div>${v("f_iaddr")||"-"}</div>`;
-    }
     document.getElementById("r_account").innerHTML=`
       <div class="k">Alias</div><div>${v("f_alias")||"-"}</div>
       <div class="k">Network</div><div>${v("f_net")||"-"}</div>
